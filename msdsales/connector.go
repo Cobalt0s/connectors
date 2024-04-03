@@ -2,7 +2,6 @@ package msdsales
 
 import (
 	"context"
-	"github.com/amp-labs/connectors"
 	"github.com/amp-labs/connectors/common"
 	"github.com/amp-labs/connectors/common/facade/interpreter"
 	"github.com/amp-labs/connectors/providers"
@@ -13,7 +12,7 @@ type Connector struct {
 	Client  *common.JSONHTTPClient
 }
 
-func (c *Connector) ListObjectMetadata(ctx context.Context, objectNames []string) (*connectors.ListObjectMetadataResult, error) {
+func (c *Connector) ListObjectMetadata(ctx context.Context, objectNames []string) (*common.ListObjectMetadataResult, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -43,7 +42,7 @@ func NewConnector(opts ...Option) (conn *Connector, outErr error) {
 	}
 	// connector and its client must mirror base url and provide its own error parser
 	conn.Client.HTTPClient.Base = baseURL
-	conn.Client.HTTPClient.ErrorHandler = interpreter.Error{
+	conn.Client.HTTPClient.ErrorHandler = interpreter.ErrorHandler{
 		JSON: conn.interpretJSONError,
 	}.Handle
 
