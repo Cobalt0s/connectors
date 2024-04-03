@@ -4,12 +4,15 @@ import (
 	"context"
 	"github.com/amp-labs/connectors/common"
 	"github.com/amp-labs/connectors/common/facade/interpreter"
+	"github.com/amp-labs/connectors/common/facade/repeaters"
 	"github.com/amp-labs/connectors/providers"
+	"time"
 )
 
 type Connector struct {
-	BaseURL string
-	Client  *common.JSONHTTPClient
+	BaseURL       string
+	Client        *common.JSONHTTPClient
+	RetryStrategy repeaters.Strategy
 }
 
 func (c *Connector) ListObjectMetadata(ctx context.Context, objectNames []string) (*common.ListObjectMetadataResult, error) {
@@ -39,6 +42,10 @@ func NewConnector(opts ...Option) (conn *Connector, outErr error) {
 	conn = &Connector{
 		BaseURL: baseURL,
 		Client:  params.Client.Caller,
+		RetryStrategy: &repeaters.UniformRetryStrategy{
+			RetriesNum: 3,
+			Interval:   time.Second,
+		},
 	}
 	// connector and its client must mirror base url and provide its own error parser
 	conn.Client.HTTPClient.Base = baseURL
