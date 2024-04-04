@@ -30,6 +30,7 @@ func main() {
 	defer utils.Close(conn)
 
 	var customPageSize int64 = 6
+
 	res, err := conn.Read(ctx, common.ReadParams{
 		ObjectName: "contacts",
 		Fields:     []string{"fullname"},
@@ -40,6 +41,7 @@ func main() {
 	if err != nil {
 		utils.Fail("error reading from microsoft sales", "error", err)
 	}
+
 	fmt.Println("FirstPage contacts..")
 	utils.DumpJSON(res, os.Stdout)
 
@@ -65,5 +67,4 @@ func main() {
 	if len(res.NextPage) != 0 || !res.Done {
 		utils.Fail("there are more records on next page, but expected to be on last page")
 	}
-
 }

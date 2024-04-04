@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/amp-labs/connectors/common"
-	"github.com/amp-labs/connectors/common/facade/interpreter"
 	"net/http"
+
+	"github.com/amp-labs/connectors/common"
+	"github.com/amp-labs/connectors/common/interpreter"
 )
 
 func (*Connector) interpretJSONError(res *http.Response, body []byte) error {

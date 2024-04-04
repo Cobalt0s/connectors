@@ -2,10 +2,11 @@ package msdsales
 
 import (
 	"errors"
-	"github.com/amp-labs/connectors/common"
-	"github.com/amp-labs/connectors/common/facade/interpreter"
 	"net/http"
 	"testing"
+
+	"github.com/amp-labs/connectors/common"
+	"github.com/amp-labs/connectors/common/interpreter"
 )
 
 func Test_interpretJSONError(t *testing.T) {

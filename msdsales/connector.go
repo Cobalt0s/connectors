@@ -2,13 +2,14 @@ package msdsales
 
 import (
 	"fmt"
-	"github.com/amp-labs/connectors/common"
-	"github.com/amp-labs/connectors/common/facade/interpreter"
-	"github.com/amp-labs/connectors/common/facade/paramsbuilder"
-	"github.com/amp-labs/connectors/common/facade/repeaters"
-	"github.com/amp-labs/connectors/providers"
 	"strings"
 	"time"
+
+	"github.com/amp-labs/connectors/common"
+	"github.com/amp-labs/connectors/common/interpreter"
+	"github.com/amp-labs/connectors/common/paramsbuilder"
+	"github.com/amp-labs/connectors/common/reqrepeater"
+	"github.com/amp-labs/connectors/providers"
 )
 
 var DefaultModuleCRM = paramsbuilder.APIModule{ // nolint: gochecknoglobals
@@ -20,7 +21,7 @@ type Connector struct {
 	BaseURL       string
 	Module        string
 	Client        *common.JSONHTTPClient
-	RetryStrategy repeaters.Strategy
+	RetryStrategy reqrepeater.Strategy
 }
 
 func NewConnector(opts ...Option) (conn *Connector, outErr error) {
@@ -46,8 +47,8 @@ func NewConnector(opts ...Option) (conn *Connector, outErr error) {
 		BaseURL: baseURL,
 		Module:  params.Module.Suffix,
 		Client:  params.Client.Caller,
-		RetryStrategy: &repeaters.UniformRetryStrategy{ // FIXME call retry strategy could be part of options
-			RetriesNum: 3,
+		RetryStrategy: &reqrepeater.UniformRetryStrategy{ // FIXME call retry strategy could be part of options
+			RetryLimit: 3,
 			Interval:   time.Second,
 		},
 	}

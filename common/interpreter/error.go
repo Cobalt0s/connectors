@@ -3,20 +3,19 @@ package interpreter
 import (
 	"errors"
 	"fmt"
-	"github.com/amp-labs/connectors/common"
 	"mime"
 	"net/http"
+
+	"github.com/amp-labs/connectors/common"
 )
 
-var (
-	ErrUnmarshal = errors.New("unmarshal failed")
-)
+var ErrUnmarshal = errors.New("unmarshal failed")
 
-// FaultyResponseHandler used to parse erroneous response
+// FaultyResponseHandler used to parse erroneous response.
 type FaultyResponseHandler func(res *http.Response, body []byte) error
 
-// ErrorHandler invokes a function that is matching a certain response media type to parse error, ex: JSON
-// otherwise defaults to general error interpretation
+// ErrorHandler invokes a function that matches response media type with parse error, ex: JSON<->JsonParserMethod
+// otherwise defaults to general error interpretation.
 type ErrorHandler struct {
 	JSON FaultyResponseHandler
 }

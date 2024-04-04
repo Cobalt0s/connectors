@@ -3,21 +3,22 @@ package msdsales
 import (
 	"context"
 	"errors"
-	"github.com/amp-labs/connectors/common"
-	"github.com/amp-labs/connectors/common/facade/paramsbuilder"
-	"golang.org/x/oauth2"
 	"net/http"
+
+	"github.com/amp-labs/connectors/common"
+	"github.com/amp-labs/connectors/common/paramsbuilder"
+	"golang.org/x/oauth2"
 )
 
 const (
-	// MaxPageSize is upper limit on elements per page
+	// MaxPageSize is upper limit on elements per page.
 	MaxPageSize = 100
 )
 
-// Option is a function which mutates the connector configuration
+// Option is a function which mutates the connector configuration.
 type Option func(params *parameters)
 
-// parameters MS Sales supports auth client and workspace by delegation
+// parameters MS Sales supports auth client, workspace, etc. by delegation.
 type parameters struct {
 	paramsbuilder.Client
 	paramsbuilder.Workspace
@@ -42,7 +43,8 @@ func (p parameters) ValidateParams() error {
 }
 
 func WithClient(ctx context.Context, client *http.Client,
-	config *oauth2.Config, token *oauth2.Token, opts ...common.OAuthOption) Option {
+	config *oauth2.Config, token *oauth2.Token, opts ...common.OAuthOption,
+) Option {
 	return func(params *parameters) {
 		params.WithClient(ctx, client, config, token, opts...)
 	}

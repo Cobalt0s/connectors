@@ -3,13 +3,14 @@ package msdsales
 import (
 	"context"
 	"errors"
-	"github.com/amp-labs/connectors/common"
-	"github.com/amp-labs/connectors/common/facade/repeaters"
 	"log/slog"
+
+	"github.com/amp-labs/connectors/common"
+	"github.com/amp-labs/connectors/common/reqrepeater"
 )
 
 // FIXME these methods look repetitive
-// FIXME arguments: Retry Strategy + HTTP Client
+// FIXME arguments: Retry Strategy + HTTP Client.
 func (c *Connector) get(ctx context.Context, url string, headers ...common.Header) (*common.JSONHTTPResponse, error) {
 	retry := c.RetryStrategy.Start()
 
@@ -21,7 +22,7 @@ func (c *Connector) get(ctx context.Context, url string, headers ...common.Heade
 			return rsp, nil
 		}
 
-		if !errors.Is(err, repeaters.ErrRetry) {
+		if !errors.Is(err, reqrepeater.ErrRetry) {
 			// actual error from client
 			return nil, err
 		}
@@ -43,7 +44,7 @@ func (c *Connector) post(ctx context.Context, url string, body any, headers ...c
 			return rsp, nil
 		}
 
-		if !errors.Is(err, repeaters.ErrRetry) {
+		if !errors.Is(err, reqrepeater.ErrRetry) {
 			// actual error from client
 			return nil, err
 		}
@@ -65,7 +66,7 @@ func (c *Connector) patch(ctx context.Context, url string, body any, headers ...
 			return rsp, nil
 		}
 
-		if !errors.Is(err, repeaters.ErrRetry) {
+		if !errors.Is(err, reqrepeater.ErrRetry) {
 			// actual error from client
 			return nil, err
 		}
@@ -87,7 +88,7 @@ func (c *Connector) delete(ctx context.Context, url string, headers ...common.He
 			return rsp, nil
 		}
 
-		if !errors.Is(err, repeaters.ErrRetry) {
+		if !errors.Is(err, reqrepeater.ErrRetry) {
 			// actual error from client
 			return nil, err
 		}
@@ -108,7 +109,7 @@ func handleError(err error) (error, bool) {
 		slog.Warn("Access token invalid, retrying", "error", err)
 		fallthrough
 	case errors.Is(err, common.ErrRetryable):
-		return repeaters.ErrRetry, false
+		return reqrepeater.ErrRetry, false
 	case errors.Is(err, common.ErrApiDisabled):
 		fallthrough
 	case errors.Is(err, common.ErrForbidden):

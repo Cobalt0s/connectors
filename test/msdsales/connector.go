@@ -2,10 +2,10 @@ package msdsales
 
 import (
 	"context"
-	"github.com/amp-labs/connectors/msdsales"
 	"net/http"
 
 	"github.com/amp-labs/connectors"
+	"github.com/amp-labs/connectors/msdsales"
 	testUtils "github.com/amp-labs/connectors/test/utils"
 	"github.com/amp-labs/connectors/utils"
 )

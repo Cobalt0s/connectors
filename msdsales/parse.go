@@ -26,7 +26,7 @@ func getNextRecordsURL(node *ajson.Node) (string, error) {
 // sometimes the fields that user requests are either
 // * singular record
 // * list of records
-// * hybrid, list of records with extra fields describing list
+// * hybrid, list of records with extra fields describing list.
 func getMarshaledData(records []map[string]interface{}, fields []string) ([]common.ReadResultRow, error) {
 	data := make([]common.ReadResultRow, len(records))
 	for i, record := range records {

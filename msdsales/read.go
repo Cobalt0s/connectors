@@ -23,12 +23,10 @@ import (
 // $top = <int> of entries to return (ignored if header <Prefer: odata.maxpagesize>)
 // $count = counts all existing rows (@odata.count)
 
-var (
-	AnnotationsHeader = common.Header{
-		Key:   "Prefer",
-		Value: "odata.include-annotations=\"*\"", // TODO we can specify which annotations to include
-	}
-)
+var AnnotationsHeader = common.Header{
+	Key:   "Prefer",
+	Value: "odata.include-annotations=\"*\"", // TODO we can specify which annotations to include
+}
 
 func newPaginationHeader(pageSize int) common.Header {
 	return common.Header{
@@ -66,7 +64,7 @@ func (c *Connector) Read(ctx context.Context, config common.ReadParams) (*common
 	)
 }
 
-// TODO this must be tested very well, must follow MS query syntax
+// TODO this must be tested very well, must follow MS query syntax.
 func makeQueryValues(config common.ReadParams) string {
 	queryValues := url.Values{}
 

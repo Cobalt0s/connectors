@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+
 	"github.com/amp-labs/connectors/common"
 	"golang.org/x/oauth2"
-	"net/http"
 )
 
 // ParamAssurance checks that param data is valid
-// Every param instance must implement it
+// Every param instance must implement it.
 type ParamAssurance interface {
 	ValidateParams() error
 }
@@ -21,7 +22,7 @@ var (
 )
 
 // Client params sets up authenticated proxy HTTP client
-// This can be reused among other param builders by composition
+// This can be reused among other param builders by composition.
 type Client struct {
 	Caller *common.JSONHTTPClient
 }
@@ -37,7 +38,8 @@ func (p *Client) ValidateParams() error {
 func (p *Client) WithClient(
 	ctx context.Context, client *http.Client,
 	config *oauth2.Config, token *oauth2.Token,
-	opts ...common.OAuthOption) {
+	opts ...common.OAuthOption,
+) {
 	options := []common.OAuthOption{
 		common.WithClient(client),
 		common.WithOAuthConfig(config),
@@ -61,7 +63,7 @@ func (p *Client) WithAuthenticatedClient(client common.AuthenticatedHTTPClient) 
 	}
 }
 
-// Workspace params sets up varying workspace name
+// Workspace params sets up varying workspace name.
 type Workspace struct {
 	Name string
 }
@@ -78,9 +80,9 @@ func (p *Workspace) WithWorkspace(workspaceRef string) {
 	p.Name = workspaceRef
 }
 
-// Module params adds suffix to URL controlling API versions
+// Module params adds suffix to URL controlling API versions.
 type Module struct {
-	Suffix string //optional
+	Suffix string
 }
 
 func (p *Module) ValidateParams() error {
