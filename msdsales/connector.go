@@ -1,7 +1,6 @@
 package msdsales
 
 import (
-	"context"
 	"fmt"
 	"github.com/amp-labs/connectors/common"
 	"github.com/amp-labs/connectors/common/facade/interpreter"
@@ -22,11 +21,6 @@ type Connector struct {
 	Module        string
 	Client        *common.JSONHTTPClient
 	RetryStrategy repeaters.Strategy
-}
-
-func (c *Connector) ListObjectMetadata(ctx context.Context, objectNames []string) (*common.ListObjectMetadataResult, error) {
-	//TODO implement me
-	panic("implement me")
 }
 
 func NewConnector(opts ...Option) (conn *Connector, outErr error) {
@@ -52,7 +46,7 @@ func NewConnector(opts ...Option) (conn *Connector, outErr error) {
 		BaseURL: baseURL,
 		Module:  params.Module.Suffix,
 		Client:  params.Client.Caller,
-		RetryStrategy: &repeaters.UniformRetryStrategy{
+		RetryStrategy: &repeaters.UniformRetryStrategy{ // FIXME call retry strategy could be part of options
 			RetriesNum: 3,
 			Interval:   time.Second,
 		},
@@ -74,6 +68,6 @@ func (c *Connector) String() string {
 	return fmt.Sprintf("%s.Connector[%s]", c.Provider(), c.Module)
 }
 
-func (c *Connector) getURL(arg string) string { // TODO should it be part of Connector interface?
+func (c *Connector) getURL(arg string) string { // FIXME should it be part of Connector interface?
 	return strings.Join([]string{c.BaseURL, c.Module, arg}, "/")
 }

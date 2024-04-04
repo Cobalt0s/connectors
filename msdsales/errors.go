@@ -23,13 +23,13 @@ func (*Connector) interpretJSONError(res *http.Response, body []byte) error {
 	case http.StatusForbidden:
 		return errors.Join(common.ErrForbidden, apiError)
 	case http.StatusNotFound:
-		return errors.Join(common.ErrBadRequest, apiError) // TODO more specific error
+		return errors.Join(common.ErrBadRequest, apiError) // FIXME more specific error
 	case http.StatusMethodNotAllowed:
-		return errors.Join(common.ErrBadRequest, apiError) // TODO more specific error
+		return errors.Join(common.ErrBadRequest, apiError) // FIXME more specific error
 	case http.StatusPreconditionFailed:
-		return errors.Join(common.ErrBadRequest, apiError) // TODO more specific error
+		return errors.Join(common.ErrBadRequest, apiError) // FIXME more specific error
 	case http.StatusRequestEntityTooLarge:
-		return errors.Join(common.ErrBadRequest, apiError) // TODO more specific error
+		return errors.Join(common.ErrBadRequest, apiError) // FIXME more specific error
 	case http.StatusTooManyRequests:
 		return errors.Join(common.ErrLimitExceeded, apiError)
 	case http.StatusNotImplemented:
@@ -48,7 +48,7 @@ type SalesErrorResponse struct {
 type SalesError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
-	// TODO below fields are non empty only if request had header `Prefer: odata.include-annotations="*"`
+	// FIXME below fields are non empty only if request had header `Prefer: odata.include-annotations="*"`
 	*EnhancedSalesError
 }
 

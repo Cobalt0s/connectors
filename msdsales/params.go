@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	// DefaultPageSize is the default page size for paginated requests.
-	DefaultPageSize = 2
+	// MaxPageSize is upper limit on elements per page
+	MaxPageSize = 100
 )
 
 // Option is a function which mutates the connector configuration

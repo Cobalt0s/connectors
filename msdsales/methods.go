@@ -8,8 +8,8 @@ import (
 	"log/slog"
 )
 
-// TODO these methods look repetitive
-// TODO arguments: Retry Strategy + HTTP Client
+// FIXME these methods look repetitive
+// FIXME arguments: Retry Strategy + HTTP Client
 func (c *Connector) get(ctx context.Context, url string, headers ...common.Header) (*common.JSONHTTPResponse, error) {
 	retry := c.RetryStrategy.Start()
 

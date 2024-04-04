@@ -3,6 +3,7 @@ package msdsales
 import (
 	"context"
 	"fmt"
+	"math"
 	"net/url"
 	"strings"
 
@@ -11,7 +12,7 @@ import (
 
 // TODO MS Sales allows fine control of reading
 // TODO basic read
-// $select = ReadParams{fields}
+// $select = ReadParams{fields} [COMPLETED]
 // $expand = nested response
 // $orderby = list of fields with asc/desc keyword
 // TODO batch
@@ -20,7 +21,7 @@ import (
 // $filter = query functions, comparisons
 // TODO pagination
 // $top = <int> of entries to return (ignored if header <Prefer: odata.maxpagesize>)
-// $count = counts rows (we could add it automatically)
+// $count = counts all existing rows (@odata.count)
 
 var (
 	AnnotationsHeader = common.Header{
@@ -37,18 +38,18 @@ func newPaginationHeader(pageSize int) common.Header {
 }
 
 func (c *Connector) Read(ctx context.Context, config common.ReadParams) (*common.ReadResult, error) {
-	var u string
+	var fullURL string
 
 	if len(config.NextPage) == 0 {
 		// First page
 		relativeURL := config.ObjectName + makeQueryValues(config)
-		u = c.getURL(relativeURL)
+		fullURL = c.getURL(relativeURL)
 	} else {
 		// Next page
-		u = c.getURL(config.NextPage)
+		fullURL = config.NextPage
 	}
 	// TODO given that one of the fields is annotation we can automatically add annotation header (how the hell the end user gonna know about the names of those fields)
-	rsp, err := c.get(ctx, u, newPaginationHeader(DefaultPageSize), AnnotationsHeader)
+	rsp, err := c.get(ctx, fullURL, newPaginationHeader(resolvePageSize(config)), AnnotationsHeader)
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +74,6 @@ func makeQueryValues(config common.ReadParams) string {
 		queryValues.Add("$select", strings.Join(config.Fields, ","))
 	}
 
-	queryValues.Add("$count", "true")
-
 	result := queryValues.Encode()
 	if len(result) != 0 {
 		// FIXME this is a hack. net/url encodes $. But we rely heavily on it
@@ -82,7 +81,6 @@ func makeQueryValues(config common.ReadParams) string {
 		// @ symbol is removed
 		for before, after := range map[string]string{
 			"%24select": "$select",
-			"%24count":  "$count",
 		} {
 			result = strings.Replace(result, before, after, -1)
 		}
@@ -94,4 +92,8 @@ func makeQueryValues(config common.ReadParams) string {
 	}
 
 	return result
+}
+
+func resolvePageSize(config common.ReadParams) int {
+	return int(math.Min(MaxPageSize, float64(config.PageSize)))
 }

@@ -36,8 +36,8 @@ func Test_interpretJSONError(t *testing.T) {
 			expectedErr: interpreter.ErrUnmarshal,
 		},
 		{
-			// TODO should it indicate that connector could handle it?
-			// TODO It would be bad to mask partial API implementation with actual caller error
+			// FIXME should it indicate that connector could handle it?
+			// FIXME It would be bad to mask partial API implementation with actual caller error
 			name: "Unknown response status produces caller error",
 			input: input{
 				res: &http.Response{

@@ -146,6 +146,19 @@ func (jsonManager) GetArr(node *ajson.Node, key string) ([]*ajson.Node, error) {
 	return arr, nil
 }
 
+func (jsonManager) ArrSize(node *ajson.Node, key string) (int64, error) {
+	innerNode, err := node.GetKey(key)
+	if err != nil {
+		return 0, err
+	}
+
+	if !innerNode.IsArray() {
+		return 0, ErrNotArray
+	}
+
+	return int64(innerNode.Size()), nil
+}
+
 func (jsonManager) GetString(node *ajson.Node, key string) (string, error) {
 	innerNode, err := node.GetKey(key)
 	if err != nil {
