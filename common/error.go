@@ -38,6 +38,7 @@ func PanicRecovery(wrapup func(cause error)) {
 		if !ok {
 			panic(re)
 		}
+
 		wrapup(err)
 	}
 }

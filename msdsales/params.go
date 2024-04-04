@@ -9,6 +9,11 @@ import (
 	"net/http"
 )
 
+const (
+	// DefaultPageSize is the default page size for paginated requests.
+	DefaultPageSize = 2
+)
+
 // Option is a function which mutates the connector configuration
 type Option func(params *parameters)
 
@@ -16,6 +21,7 @@ type Option func(params *parameters)
 type parameters struct {
 	paramsbuilder.Client
 	paramsbuilder.Workspace
+	paramsbuilder.Module
 }
 
 func (p parameters) FromOptions(opts ...Option) (*parameters, error) {
@@ -23,6 +29,7 @@ func (p parameters) FromOptions(opts ...Option) (*parameters, error) {
 	for _, opt := range opts {
 		opt(params)
 	}
+
 	return params, params.ValidateParams()
 }
 
@@ -30,6 +37,7 @@ func (p parameters) ValidateParams() error {
 	return errors.Join(
 		p.Client.ValidateParams(),
 		p.Workspace.ValidateParams(),
+		p.Module.ValidateParams(),
 	)
 }
 
@@ -49,5 +57,11 @@ func WithAuthenticatedClient(client common.AuthenticatedHTTPClient) Option {
 func WithWorkspace(workspaceRef string) Option {
 	return func(params *parameters) {
 		params.WithWorkspace(workspaceRef)
+	}
+}
+
+func WithModule(module paramsbuilder.APIModule) Option {
+	return func(params *parameters) {
+		params.WithModule(module)
 	}
 }

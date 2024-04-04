@@ -3,6 +3,7 @@ package paramsbuilder
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/amp-labs/connectors/common"
 	"golang.org/x/oauth2"
 	"net/http"
@@ -10,14 +11,13 @@ import (
 
 // ParamAssurance checks that param data is valid
 // Every param instance must implement it
-//
 type ParamAssurance interface {
 	ValidateParams() error
 }
 
 var (
 	ErrMissingClient    = errors.New("JSON http client not set")
-	ErrMissingWorkspace   = errors.New("missing workspace name")
+	ErrMissingWorkspace = errors.New("missing workspace name")
 )
 
 // Client params sets up authenticated proxy HTTP client
@@ -30,6 +30,7 @@ func (p *Client) ValidateParams() error {
 	if p.Caller == nil {
 		return ErrMissingClient
 	}
+
 	return nil
 }
 
@@ -37,7 +38,6 @@ func (p *Client) WithClient(
 	ctx context.Context, client *http.Client,
 	config *oauth2.Config, token *oauth2.Token,
 	opts ...common.OAuthOption) {
-
 	options := []common.OAuthOption{
 		common.WithClient(client),
 		common.WithOAuthConfig(config),
@@ -70,9 +70,33 @@ func (p *Workspace) ValidateParams() error {
 	if len(p.Name) == 0 {
 		return ErrMissingWorkspace
 	}
+
 	return nil
 }
 
 func (p *Workspace) WithWorkspace(workspaceRef string) {
 	p.Name = workspaceRef
+}
+
+// Module params adds suffix to URL controlling API versions
+type Module struct {
+	Suffix string //optional
+}
+
+func (p *Module) ValidateParams() error {
+	// url suffix may be omitted
+	return nil
+}
+
+func (p *Module) WithModule(module APIModule) {
+	p.Suffix = module.String()
+}
+
+type APIModule struct {
+	Label   string // e.g. "crm"
+	Version string // e.g. "v3"
+}
+
+func (a APIModule) String() string {
+	return fmt.Sprintf("%s/%s", a.Label, a.Version)
 }

@@ -2,15 +2,24 @@ package msdsales
 
 import (
 	"context"
+	"fmt"
 	"github.com/amp-labs/connectors/common"
 	"github.com/amp-labs/connectors/common/facade/interpreter"
+	"github.com/amp-labs/connectors/common/facade/paramsbuilder"
 	"github.com/amp-labs/connectors/common/facade/repeaters"
 	"github.com/amp-labs/connectors/providers"
+	"strings"
 	"time"
 )
 
+var DefaultModuleCRM = paramsbuilder.APIModule{ // nolint: gochecknoglobals
+	Label:   "api/data",
+	Version: "v9.2",
+}
+
 type Connector struct {
 	BaseURL       string
+	Module        string
 	Client        *common.JSONHTTPClient
 	RetryStrategy repeaters.Strategy
 }
@@ -41,6 +50,7 @@ func NewConnector(opts ...Option) (conn *Connector, outErr error) {
 	baseURL := providerInfo.BaseURL
 	conn = &Connector{
 		BaseURL: baseURL,
+		Module:  params.Module.Suffix,
 		Client:  params.Client.Caller,
 		RetryStrategy: &repeaters.UniformRetryStrategy{
 			RetriesNum: 3,
@@ -59,6 +69,11 @@ func NewConnector(opts ...Option) (conn *Connector, outErr error) {
 func (c *Connector) Provider() providers.Provider {
 	return providers.MicrosoftDynamics365Sales
 }
+
 func (c *Connector) String() string {
-	return c.Provider() + ".Connector"
+	return fmt.Sprintf("%s.Connector[%s]", c.Provider(), c.Module)
+}
+
+func (c *Connector) getURL(arg string) string { // TODO should it be part of Connector interface?
+	return strings.Join([]string{c.BaseURL, c.Module, arg}, "/")
 }

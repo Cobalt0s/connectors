@@ -60,6 +60,7 @@ func Test_interpretJSONError(t *testing.T) {
 	}
 
 	connector := Connector{}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := connector.interpretJSONError(tt.input.res, tt.input.body)
@@ -79,6 +80,7 @@ func Test_interpretJSONError(t *testing.T) {
 				 }  
 				}`))
 		target := &SalesErrorResponse{} // this var must be of the most concrete type for errors.As to succeed
+
 		if !errors.As(err, &target) {
 			t.Fatalf("expected errot type mismatched for: %v", err)
 		}

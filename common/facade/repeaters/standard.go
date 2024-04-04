@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-
 var ErrRetry = errors.New("try again later")
 
 type Strategy interface {
@@ -15,7 +14,6 @@ type Strategy interface {
 type Retry interface {
 	Completed() bool
 }
-
 
 type UniformRetryStrategy struct {
 	RetriesNum int
@@ -38,8 +36,9 @@ func (r *UniformRetry) Completed() bool {
 	if r.RetriesNum == 0 {
 		return true
 	}
+
 	r.RetriesNum -= 1
 	time.Sleep(r.Interval)
+
 	return false
 }
-
