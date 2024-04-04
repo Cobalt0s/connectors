@@ -1,8 +1,12 @@
 package repeaters
 
 import (
+	"errors"
 	"time"
 )
+
+
+var ErrRetry = errors.New("try again later")
 
 type Strategy interface {
 	Start() Retry
