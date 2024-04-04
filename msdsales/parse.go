@@ -6,20 +6,20 @@ import (
 )
 
 func getTotalSize(node *ajson.Node) (int64, error) {
-	return common.JsonManager.ArrSize(node, "value")
+	return common.JSONManager.ArrSize(node, "value")
 }
 
 func getRecords(node *ajson.Node) ([]map[string]any, error) {
-	arr, err := common.JsonManager.GetArr(node, "value")
+	arr, err := common.JSONManager.GetArr(node, "value")
 	if err != nil {
 		return nil, err
 	}
 
-	return common.JsonManager.ArrToMap(arr)
+	return common.JSONManager.ArrToMap(arr)
 }
 
 func getNextRecordsURL(node *ajson.Node) (string, error) {
-	return common.JsonManager.GetString(node, "@odata.nextLink")
+	return common.JSONManager.GetString(node, "@odata.nextLink")
 }
 
 // FIXME we must differentiate between GET and LIST (it is LIST now)

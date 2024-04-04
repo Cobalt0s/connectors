@@ -23,7 +23,7 @@ import (
 // $top = <int> of entries to return (ignored if header <Prefer: odata.maxpagesize>)
 // $count = counts all existing rows (@odata.count)
 
-var AnnotationsHeader = common.Header{
+var annotationsHeader = common.Header{
 	Key:   "Prefer",
 	Value: "odata.include-annotations=\"*\"", // TODO we can specify which annotations to include
 }
@@ -47,12 +47,10 @@ func (c *Connector) Read(ctx context.Context, config common.ReadParams) (*common
 		fullURL = config.NextPage
 	}
 	// TODO given that one of the fields is annotation we can automatically add annotation header (how the hell the end user gonna know about the names of those fields)
-	rsp, err := c.get(ctx, fullURL, newPaginationHeader(resolvePageSize(config)), AnnotationsHeader)
+	rsp, err := c.get(ctx, fullURL, newPaginationHeader(resolvePageSize(config)), annotationsHeader)
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(rsp.Body.String())
 
 	return common.ParseResult(
 		rsp,
@@ -74,17 +72,17 @@ func makeQueryValues(config common.ReadParams) string {
 
 	result := queryValues.Encode()
 	if len(result) != 0 {
-		// FIXME this is a hack. net/url encodes $. But we rely heavily on it
+		// TODO this is a hack. net/url encodes $. But we rely heavily on it
 		// same problem with "@" ex: @Microsoft.Dynamics.CRM.totalrecordcountlimitexceeded
 		// @ symbol is removed
 		for before, after := range map[string]string{
 			"%24select": "$select",
 		} {
-			result = strings.Replace(result, before, after, -1)
+			result = strings.ReplaceAll(result, before, after)
 		}
 
-		result = strings.Replace(result, "%40", "@", -1)
-		result = strings.Replace(result, "%2C", ",", -1)
+		result = strings.ReplaceAll(result, "%40", "@")
+		result = strings.ReplaceAll(result, "%2C", ",")
 
 		return "?" + result
 	}

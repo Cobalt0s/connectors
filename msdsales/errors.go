@@ -11,7 +11,7 @@ import (
 )
 
 func (*Connector) interpretJSONError(res *http.Response, body []byte) error {
-	apiError := &SalesErrorResponse{}
+	apiError := &SalesResponseError{}
 	if err := json.Unmarshal(body, &apiError); err != nil {
 		return fmt.Errorf("interpretJSONError: %w %w", interpreter.ErrUnmarshal, err)
 	}
@@ -42,7 +42,7 @@ func (*Connector) interpretJSONError(res *http.Response, body []byte) error {
 	}
 }
 
-type SalesErrorResponse struct {
+type SalesResponseError struct {
 	Err SalesError `json:"error"`
 }
 
@@ -59,6 +59,6 @@ type EnhancedSalesError struct {
 	InnerMessage string `json:"@Microsoft.PowerApps.CDS.InnerError.Message"`
 }
 
-func (s SalesErrorResponse) Error() string {
+func (s SalesResponseError) Error() string {
 	return s.Err.Message
 }

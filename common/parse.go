@@ -83,9 +83,9 @@ var (
 	ErrNotNumeric = errors.New("value is not numeric")
 	ErrNotInteger = errors.New("value is not integer")
 
-	// JsonManager is a helpful wrapper of ajson library that adds errors when querying JSON payload
+	// JSONManager is a helpful wrapper of ajson library that adds errors when querying JSON payload
 	// and provides common conversion methods.
-	JsonManager = jsonManager{}
+	JSONManager = jsonManager{}
 )
 
 type jsonManager struct{}
@@ -162,7 +162,7 @@ func (jsonManager) ArrSize(node *ajson.Node, key string) (int64, error) {
 func (jsonManager) GetString(node *ajson.Node, key string) (string, error) {
 	innerNode, err := node.GetKey(key)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	txt, err := innerNode.GetString()

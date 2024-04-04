@@ -12,6 +12,8 @@ import (
 	"github.com/amp-labs/connectors/providers"
 )
 
+var DefaultRequestRetryLimit = 3
+
 var DefaultModuleCRM = paramsbuilder.APIModule{ // nolint: gochecknoglobals
 	Label:   "api/data",
 	Version: "v9.2",
@@ -48,7 +50,7 @@ func NewConnector(opts ...Option) (conn *Connector, outErr error) {
 		Module:  params.Module.Suffix,
 		Client:  params.Client.Caller,
 		RetryStrategy: &reqrepeater.UniformRetryStrategy{ // FIXME call retry strategy could be part of options
-			RetryLimit: 3,
+			RetryLimit: DefaultRequestRetryLimit,
 			Interval:   time.Second,
 		},
 	}

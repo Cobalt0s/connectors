@@ -11,7 +11,9 @@ import (
 
 // FIXME these methods look repetitive
 // FIXME arguments: Retry Strategy + HTTP Client.
-func (c *Connector) get(ctx context.Context, url string, headers ...common.Header) (*common.JSONHTTPResponse, error) {
+func (c *Connector) get(ctx context.Context,
+	url string, headers ...common.Header,
+) (*common.JSONHTTPResponse, error) {
 	retry := c.RetryStrategy.Start()
 
 	for {
@@ -33,7 +35,9 @@ func (c *Connector) get(ctx context.Context, url string, headers ...common.Heade
 	}
 }
 
-func (c *Connector) post(ctx context.Context, url string, body any, headers ...common.Header) (*common.JSONHTTPResponse, error) {
+func (c *Connector) post(ctx context.Context,
+	url string, body any, headers ...common.Header,
+) (*common.JSONHTTPResponse, error) {
 	retry := c.RetryStrategy.Start()
 
 	for {
@@ -55,7 +59,9 @@ func (c *Connector) post(ctx context.Context, url string, body any, headers ...c
 	}
 }
 
-func (c *Connector) patch(ctx context.Context, url string, body any, headers ...common.Header) (*common.JSONHTTPResponse, error) {
+func (c *Connector) patch(ctx context.Context,
+	url string, body any, headers ...common.Header,
+) (*common.JSONHTTPResponse, error) {
 	retry := c.RetryStrategy.Start()
 
 	for {
@@ -77,7 +83,9 @@ func (c *Connector) patch(ctx context.Context, url string, body any, headers ...
 	}
 }
 
-func (c *Connector) delete(ctx context.Context, url string, headers ...common.Header) (*common.JSONHTTPResponse, error) {
+func (c *Connector) delete(ctx context.Context,
+	url string, headers ...common.Header,
+) (*common.JSONHTTPResponse, error) {
 	retry := c.RetryStrategy.Start()
 
 	for {
