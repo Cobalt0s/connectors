@@ -66,11 +66,9 @@ func Test_interpretJSONError(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			err := connector.interpretJSONError(tt.input.res, tt.input.body)
 			if !errors.Is(err, tt.expectedErr) {
-				t.Fatalf("%s: expected: %v, got: %v", tt.name, tt.expectedErr, err)
+				t.Fatalf("%s: expected: (%v), got: (%v)", tt.name, tt.expectedErr, err)
 			}
 		})
 	}
@@ -87,7 +85,7 @@ func Test_interpretJSONError(t *testing.T) {
 		target := &SalesResponseError{} // this var must be of the most concrete type for errors.As to succeed
 
 		if !errors.As(err, &target) {
-			t.Fatalf("expected errot type mismatched for: %v", err)
+			t.Fatalf("expected errot type mismatched for: (%v)", err)
 		}
 	})
 }
