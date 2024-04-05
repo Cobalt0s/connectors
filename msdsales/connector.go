@@ -72,5 +72,14 @@ func (c *Connector) String() string {
 }
 
 func (c *Connector) getURL(arg string) string { // FIXME should it be part of Connector interface?
-	return strings.Join([]string{c.BaseURL, c.Module, arg}, "/")
+	parts := []string{c.BaseURL, c.Module, arg}
+	filtered := make([]string, 0)
+
+	for _, part := range parts {
+		if len(part) != 0 {
+			filtered = append(filtered, part)
+		}
+	}
+
+	return strings.Join(filtered, "/")
 }

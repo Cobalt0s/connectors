@@ -91,5 +91,9 @@ func makeQueryValues(config common.ReadParams) string {
 }
 
 func resolvePageSize(config common.ReadParams) int {
+	if config.PageSize == 0 {
+		return MaxPageSize
+	}
+
 	return int(math.Min(MaxPageSize, float64(config.PageSize)))
 }

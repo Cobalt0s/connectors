@@ -77,11 +77,11 @@ func ExtractLowercaseFieldsFromRaw(fields []string, record map[string]interface{
 }
 
 var (
-	ErrNotArray   = errors.New("results is not an array")
-	ErrNotObject  = errors.New("result is not an object")
-	ErrNotString  = errors.New("link is not a string")
-	ErrNotNumeric = errors.New("value is not numeric")
-	ErrNotInteger = errors.New("value is not integer")
+	ErrNotArray   = errors.New("JSON value is not an array")
+	ErrNotObject  = errors.New("JSON value is not an object")
+	ErrNotString  = errors.New("JSON value is not a string")
+	ErrNotNumeric = errors.New("JSON value is not a numeric")
+	ErrNotInteger = errors.New("JSON value is not an integer")
 
 	// JSONManager is a helpful wrapper of ajson library that adds errors when querying JSON payload
 	// and provides common conversion methods.
