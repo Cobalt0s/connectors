@@ -49,14 +49,14 @@ func (r *UniformRetry) Completed() bool {
 	return false
 }
 
-// NullStrategy it doesn't even try
-type NullStrategy struct {}
+// NullStrategy it doesn't even try.
+type NullStrategy struct{}
 
 func (NullStrategy) Start() Retry {
 	return &NullRetry{}
 }
 
-type NullRetry struct {}
+type NullRetry struct{}
 
 func (NullRetry) Completed() bool {
 	return true

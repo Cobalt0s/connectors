@@ -46,7 +46,8 @@ func (c *Connector) Read(ctx context.Context, config common.ReadParams) (*common
 		// Next page
 		fullURL = config.NextPage
 	}
-	// TODO given that one of the fields is annotation we can automatically add annotation header (how the hell the end user gonna know about the names of those fields)
+	// TODO given that one of the fields is annotation we can automatically add annotation header
+	// (how the hell the end user gonna know about the names of those fields)
 	rsp, err := c.get(ctx, fullURL, newPaginationHeader(resolvePageSize(config)), annotationsHeader)
 	if err != nil {
 		return nil, err

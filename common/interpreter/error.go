@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	ErrUnmarshal = errors.New("unmarshal failed")
+	ErrUnmarshal       = errors.New("unmarshal failed")
 	MissingContentType = errors.New("mime.ParseMediaType failed")
 )
 

@@ -159,7 +159,12 @@ func (jsonManager) ArrSize(node *ajson.Node, key string) (int64, error) {
 	return int64(innerNode.Size()), nil
 }
 
-func (jsonManager) GetString(node *ajson.Node, key string) (string, error) {
+func (jsonManager) GetString(node *ajson.Node, key string, optional bool) (string, error) {
+	if optional && !node.HasKey(key) {
+		// null value in payload is allowed
+		return "", nil
+	}
+
 	innerNode, err := node.GetKey(key)
 	if err != nil {
 		return "", err
