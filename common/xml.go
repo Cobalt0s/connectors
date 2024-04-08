@@ -1,9 +1,14 @@
 package common
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/subchen/go-xmldom"
+	"mime"
+	"net/http"
 	"strings"
 
 	"github.com/go-playground/validator"
@@ -22,6 +27,82 @@ var (
 	ErrNoSelfClosing  = errors.New("selfClosing cannot be true if children are not present")
 	ErrNoParens       = errors.New("value cannot contain < or >")
 )
+
+// XMLHTTPClient TODO
+type XMLHTTPClient struct {
+	HTTPClient *HTTPClient // underlying HTTP client. Required.
+}
+
+type XMLHTTPResponse struct {
+	// TODO
+	bodyBytes []byte
+
+	// Code is the HTTP status code of the response.
+	Code int
+
+	// Headers are the HTTP headers of the response.
+	Headers http.Header
+
+	// TODO
+	Body *xmldom.Document
+}
+
+// Get makes a GET request to the given URL and returns the response body as a JSON object.
+// If the response is not a 2xx, an error is returned. If the response is a 401, the caller should
+// refresh the access token and retry the request. If errorHandler is nil, then the default error
+// handler is used. If not, the caller can inject their own error handling logic.
+func (j *XMLHTTPClient) Get(ctx context.Context, url string, headers ...Header) (*XMLHTTPResponse, error) {
+	res, body, err := j.HTTPClient.Get(ctx, url, addAcceptXMLHeader(headers)) //nolint:bodyclose
+	if err != nil {
+		return nil, err
+	}
+
+	return parseXMLResponse(res, body)
+}
+
+
+// parseXMLResponse parses the given HTTP response and returns a XMLHTTPResponse.
+func parseXMLResponse(res *http.Response, body []byte) (*XMLHTTPResponse, error) {
+	// empty response body should not be parsed
+	if len(body) == 0 {
+		return nil, nil //nolint:nilnil
+	}
+	// Ensure the response is JSON
+	ct := res.Header.Get("Content-Type")
+	if len(ct) > 0 {
+		mimeType, _, err := mime.ParseMediaType(ct)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse content type: %w", err)
+		}
+
+		if mimeType != "application/xml" {
+			return nil, fmt.Errorf("%w: expected content type to be application/xml, got %s", ErrNotXML, mimeType)
+		}
+	}
+
+	// Unmarshall the response body into XML
+	xmlBody, err := xmldom.Parse(bytes.NewReader(body))
+	if err != nil {
+		return nil, NewHTTPStatusError(res.StatusCode, fmt.Errorf("failed to unmarshall response body into XML: %w", err))
+	}
+
+	return &XMLHTTPResponse{
+		bodyBytes: body,
+		Code:      res.StatusCode,
+		Headers:   res.Header,
+		Body:      xmlBody,
+	}, nil
+}
+
+
+func addAcceptXMLHeader(headers []Header) []Header {
+	if headers == nil {
+		headers = make([]Header, 0)
+	}
+
+	return append(headers, Header{Key: "Accept", Value: "application/xml"})
+}
+
 
 type XMLSchema interface {
 	String() string

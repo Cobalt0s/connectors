@@ -2,11 +2,11 @@ package msdsales
 
 import (
 	"fmt"
+	"github.com/amp-labs/connectors/common/interpreter"
 	"strings"
 	"time"
 
 	"github.com/amp-labs/connectors/common"
-	"github.com/amp-labs/connectors/common/interpreter"
 	"github.com/amp-labs/connectors/common/paramsbuilder"
 	"github.com/amp-labs/connectors/common/reqrepeater"
 	"github.com/amp-labs/connectors/providers"
@@ -23,6 +23,7 @@ type Connector struct {
 	BaseURL       string
 	Module        string
 	Client        *common.JSONHTTPClient
+	XMLClient     *common.XMLHTTPClient
 	RetryStrategy reqrepeater.Strategy
 }
 
@@ -44,21 +45,29 @@ func NewConnector(opts ...Option) (conn *Connector, outErr error) {
 		return nil, err
 	}
 
+
+	// connector and its client must mirror base url and provide its own error parser
+	httpClient := params.Client.Caller
 	baseURL := providerInfo.BaseURL
+	httpClient.Base = baseURL
+	httpClient.ErrorHandler = interpreter.ErrorHandler{
+		JSON: conn.interpretJSONError,
+	}.Handle
+
 	conn = &Connector{
 		BaseURL: baseURL,
 		Module:  params.Module.Suffix,
-		Client:  params.Client.Caller,
+		Client:  &common.JSONHTTPClient{
+			HTTPClient: httpClient,
+		},
+		XMLClient:  &common.XMLHTTPClient{
+			HTTPClient: httpClient,
+		},
 		RetryStrategy: &reqrepeater.UniformRetryStrategy{ // FIXME call retry strategy could be part of options
 			RetryLimit: DefaultRequestRetryLimit,
 			Interval:   time.Second,
 		},
 	}
-	// connector and its client must mirror base url and provide its own error parser
-	conn.Client.HTTPClient.Base = baseURL
-	conn.Client.HTTPClient.ErrorHandler = interpreter.ErrorHandler{
-		JSON: conn.interpretJSONError,
-	}.Handle
 
 	return conn, nil
 }

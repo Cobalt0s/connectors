@@ -35,6 +35,30 @@ func (c *Connector) get(ctx context.Context,
 	}
 }
 
+func (c *Connector) getXML(ctx context.Context,
+	url string, headers ...common.Header,
+) (*common.XMLHTTPResponse, error) {
+	retry := c.RetryStrategy.Start()
+
+	for {
+		rsp, err := c.XMLClient.Get(ctx, url, headers...)
+		err, ok := handleError(err)
+
+		if ok {
+			return rsp, nil
+		}
+
+		if !errors.Is(err, reqrepeater.ErrRetry) {
+			// actual error from client
+			return nil, err
+		}
+		// we can mitigate an error if we retry
+		if retry.Completed() {
+			return nil, err
+		}
+	}
+}
+
 func (c *Connector) post(ctx context.Context,
 	url string, body any, headers ...common.Header,
 ) (*common.JSONHTTPResponse, error) {
