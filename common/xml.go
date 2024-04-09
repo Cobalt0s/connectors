@@ -23,6 +23,7 @@ const (
 var (
 	//nolint:gochecknoglobals
 	validate          = validator.New()
+	ErrNoXMLRoot      = errors.New("xml document has no root")
 	ErrNotXMLChildren = errors.New("children must be of type 'XMLData' or 'XMLString'")
 	ErrNoSelfClosing  = errors.New("selfClosing cannot be true if children are not present")
 	ErrNoParens       = errors.New("value cannot contain < or >")
@@ -47,6 +48,13 @@ type XMLHTTPResponse struct {
 	Body *xmldom.Document
 }
 
+func (r XMLHTTPResponse) GetRoot() (*xmldom.Node, error) {
+	if r.Body == nil || r.Body.Root == nil {
+		return nil, ErrNoXMLRoot
+	}
+	return r.Body.Root, nil
+}
+
 // Get makes a GET request to the given URL and returns the response body as a JSON object.
 // If the response is not a 2xx, an error is returned. If the response is a 401, the caller should
 // refresh the access token and retry the request. If errorHandler is nil, then the default error
@@ -59,7 +67,6 @@ func (j *XMLHTTPClient) Get(ctx context.Context, url string, headers ...Header) 
 
 	return parseXMLResponse(res, body)
 }
-
 
 // parseXMLResponse parses the given HTTP response and returns a XMLHTTPResponse.
 func parseXMLResponse(res *http.Response, body []byte) (*XMLHTTPResponse, error) {
@@ -94,7 +101,6 @@ func parseXMLResponse(res *http.Response, body []byte) (*XMLHTTPResponse, error)
 	}, nil
 }
 
-
 func addAcceptXMLHeader(headers []Header) []Header {
 	if headers == nil {
 		headers = make([]Header, 0)
@@ -102,7 +108,6 @@ func addAcceptXMLHeader(headers []Header) []Header {
 
 	return append(headers, Header{Key: "Accept", Value: "application/xml"})
 }
-
 
 type XMLSchema interface {
 	String() string

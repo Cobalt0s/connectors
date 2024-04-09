@@ -2,50 +2,110 @@ package msdsales
 
 import (
 	"context"
+	"errors"
 	"fmt"
-
 	"github.com/amp-labs/connectors/common"
+	"github.com/subchen/go-xmldom"
+)
+
+var (
+	SalesMetadataSchemaName = "Microsoft.Dynamics.CRM"
+
+	ErrMetadataProcessing = errors.New("metadata couldn't be processed")
+	ErrObjectNotFound     = errors.New("object not found")
 )
 
 func (c *Connector) ListObjectMetadata(
 	ctx context.Context, objectNames []string,
 ) (*common.ListObjectMetadataResult, error) {
+	// Ensure that objectNames is not empty
+	if len(objectNames) == 0 {
+		return nil, common.ErrMissingObjects
+	}
 
 	rsp, err := c.getXML(ctx, c.getURL("$metadata"))
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println(rsp.Code)
-
-	uniqueNames := make(map[string]bool)
-
-	for _, child := range rsp.Body.Root.Children {
-		if child.Name == "DataServices" {
-			for _, node := range child.Children {
-				if node.Name == "Schema" {
-					for _, n := range node.Children {
-						if n.Name == "EntityType" {
-							for _, ch := range n.Children {
-								uniqueNames[ch.Name] = false
-							}
-						} else {
-							fmt.Println("") // Complex Type / EnumType / Annotation / Parameter / ReturnType
-						}
-					}
-				}
-			}
-			fmt.Println("")
-		}
+	root, err := rsp.GetRoot()
+	if err != nil {
+		return nil, err
 	}
-	output := ""
-	for k := range uniqueNames {
-		output += k + "\n"
+
+	entities, err := extractEntities(root)
+	if err != nil {
+		return nil, err
 	}
-	fmt.Println(output)
+	// FIXME a call to the metadata endpoint is costly, once queried and processed we should Cache entities
+	// even if the caller requested metadata for only one object we still load the whole schema (~10 sec)
+	result, err := convertEntitySetToMetadataSet(objectNames, entities)
+	if err != nil {
+		return nil, err
+	}
 
 	return &common.ListObjectMetadataResult{
-		Result: map[string]common.ObjectMetadata{},
+		Result: result,
 		Errors: nil,
 	}, nil
+}
+
+// collects field properties and groups them in entities, other data in XML is ignored
+func extractEntities(root *xmldom.Node) (EntitySet, error) {
+	entities := NewEntitySet()
+	// List all field properties that exist for current schema
+	queryListAllSchemaProperties := fmt.Sprintf(
+		"/DataServices/Schema[@Namespace='%v']/EntityType[*]/Property/@Name", SalesMetadataSchemaName)
+	root.QueryEach(queryListAllSchemaProperties, func(index int, property *xmldom.Node) {
+		// parent of a property is an Entity.
+		// Entity may inherit properties from a parent
+		// We save entity name and the name of its parent, so later we can infer all properties by denormalisation
+		entityName := property.Parent.GetAttributeValue("Name")
+		parentName := property.Parent.GetAttributeValue("BaseType")
+		entity := entities.GetOrCreate(entityName, parentName)
+		propertyName := property.GetAttributeValue("Name")
+		entity.AddProperty(propertyName)
+	})
+
+	queryListAbstractEntities := fmt.Sprintf(
+		"/DataServices/Schema[@Namespace='%v']/EntityType[@Abstract='true']", SalesMetadataSchemaName)
+	root.QueryEach(queryListAbstractEntities, func(index int, abstractEntity *xmldom.Node) {
+		if len(abstractEntity.Children) == 0 {
+			// these entities were not included by previous query as they have no properties
+			// we programmatically find these special types, which are "primary values" but for structs
+			// Ex: crmbaseentity, crmmodelbaseentity,
+			entityName := abstractEntity.GetAttributeValue("Name")
+			// effectively only create
+			_ = entities.GetOrCreate(entityName, "")
+		}
+	})
+
+	querySalesSchema := fmt.Sprintf("/DataServices/Schema[@Namespace='%v']", SalesMetadataSchemaName)
+	schemaAlias := root.QueryOne(querySalesSchema).GetAttributeValue("Alias")
+	// link every child with parent completing hierarchy
+	if err := entities.MatchParentsWithChildren(schemaAlias); err != nil {
+		return nil, errors.Join(ErrMetadataProcessing, err)
+	}
+	return entities, nil
+}
+
+func convertEntitySetToMetadataSet(names []string, entities EntitySet) (map[string]common.ObjectMetadata, error) {
+	result := map[string]common.ObjectMetadata{}
+	for _, name := range names {
+		entity, ok := entities[name]
+		if !ok {
+			return nil, fmt.Errorf("unknown name %v %w", name, ErrObjectNotFound)
+		}
+		properties := entity.GetAllProperties()
+		fieldsMap := make(map[string]string)
+		for _, p := range properties {
+			fieldsMap[p] = p
+		}
+		result[name] = common.ObjectMetadata{
+			DisplayName: name,
+			FieldsMap:   fieldsMap,
+		}
+	}
+
+	return result, nil
 }
