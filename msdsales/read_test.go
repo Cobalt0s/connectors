@@ -196,8 +196,7 @@ func Test_Read(t *testing.T) {
 			expectedErrs: nil,
 		},
 		{
-			// NOTE: all keys in ReadResultRow will be all in lower caps
-			name: "Successful read with chosen fields plus prepended with display values",
+			name: "Successful read with chosen fields",
 			input: common.ReadParams{
 				Fields: []string{"fullname", "familystatuscode"},
 			},
@@ -212,7 +211,6 @@ func Test_Read(t *testing.T) {
 					Fields: map[string]any{
 						"fullname":         "Heriberto Nathan",
 						"familystatuscode": float64(1),
-						"familystatuscode@odata.community.display.v1.formattedvalue": "Single",
 					},
 					Raw: map[string]any{
 						"@odata.etag":   "W/\"4372108\"",
@@ -227,7 +225,6 @@ func Test_Read(t *testing.T) {
 					Fields: map[string]any{
 						"fullname":         "Dwayne Elijah",
 						"familystatuscode": float64(1),
-						"familystatuscode@odata.community.display.v1.formattedvalue": "Single",
 					},
 					Raw: map[string]any{
 						"@odata.etag":   "W/\"4372115\"",

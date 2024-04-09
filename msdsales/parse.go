@@ -1,8 +1,6 @@
 package msdsales
 
 import (
-	"strings"
-
 	"github.com/amp-labs/connectors/common"
 	"github.com/spyzhov/ajson"
 )
@@ -33,7 +31,6 @@ func getMarshaledData(records []map[string]interface{}, fields []string) ([]comm
 	data := make([]common.ReadResultRow, len(records))
 
 	for i, record := range records {
-		fields = append(fields, getDisplayFields(fields, record)...)
 		data[i] = common.ReadResultRow{
 			Fields: common.ExtractLowercaseFieldsFromRaw(fields, record),
 			Raw:    record,
@@ -41,21 +38,4 @@ func getMarshaledData(records []map[string]interface{}, fields []string) ([]comm
 	}
 
 	return data, nil
-}
-
-// There are some fields that are only returned in pairs
-// these pairs start with the same name and then are followed by @SomeSuffix
-// Ex: requesting key `familystatuscode` which is of enum type will include another field defining it as `Married`.
-func getDisplayFields(fields []string, payload map[string]any) []string {
-	displayFields := make([]string, 0)
-
-	for _, field := range fields {
-		for key := range payload {
-			if strings.HasPrefix(key, field+"@") {
-				displayFields = append(displayFields, key)
-			}
-		}
-	}
-
-	return displayFields
 }

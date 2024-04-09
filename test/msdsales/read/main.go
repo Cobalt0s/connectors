@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/amp-labs/connectors/common"
 	msTest "github.com/amp-labs/connectors/test/msdsales"
@@ -34,9 +33,7 @@ func main() {
 		Fields: []string{
 			"fullname", "emailaddress1", "fax", "familystatuscode",
 		},
-		NextPage: "",
 		PageSize: 2,
-		Since:    time.Now().Add(-5 * time.Minute),
 	})
 	if err != nil {
 		utils.Fail("error reading from microsoft sales", "error", err)
