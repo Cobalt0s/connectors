@@ -6,12 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/subchen/go-xmldom"
 	"mime"
 	"net/http"
 	"strings"
 
 	"github.com/go-playground/validator"
+	"github.com/subchen/go-xmldom"
 )
 
 const (
@@ -29,7 +29,7 @@ var (
 	ErrNoParens       = errors.New("value cannot contain < or >")
 )
 
-// XMLHTTPClient speaks from http client in XML
+// XMLHTTPClient speaks from http client in XML.
 type XMLHTTPClient struct {
 	HTTPClient *HTTPClient // underlying HTTP client. Required.
 }
@@ -52,6 +52,7 @@ func (r XMLHTTPResponse) GetRoot() (*xmldom.Node, error) {
 	if r.Body == nil || r.Body.Root == nil {
 		return nil, ErrNoXMLRoot
 	}
+
 	return r.Body.Root, nil
 }
 
@@ -252,7 +253,7 @@ func (x *XMLData) String() string {
 
 	end := x.endTag()
 
-	var children []string
+	children := make([]string, 0)
 	for _, child := range x.Children {
 		children = append(children, child.String())
 	}

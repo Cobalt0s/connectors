@@ -2,11 +2,11 @@ package msdsales
 
 import (
 	"fmt"
-	"github.com/amp-labs/connectors/common/interpreter"
 	"strings"
 	"time"
 
 	"github.com/amp-labs/connectors/common"
+	"github.com/amp-labs/connectors/common/interpreter"
 	"github.com/amp-labs/connectors/common/paramsbuilder"
 	"github.com/amp-labs/connectors/common/reqrepeater"
 	"github.com/amp-labs/connectors/providers"
@@ -45,7 +45,6 @@ func NewConnector(opts ...Option) (conn *Connector, outErr error) {
 		return nil, err
 	}
 
-
 	// connector and its client must mirror base url and provide its own error parser
 	httpClient := params.Client.Caller
 	baseURL := providerInfo.BaseURL
@@ -57,10 +56,10 @@ func NewConnector(opts ...Option) (conn *Connector, outErr error) {
 	conn = &Connector{
 		BaseURL: baseURL,
 		Module:  params.Module.Suffix,
-		Client:  &common.JSONHTTPClient{
+		Client: &common.JSONHTTPClient{
 			HTTPClient: httpClient,
 		},
-		XMLClient:  &common.XMLHTTPClient{
+		XMLClient: &common.XMLHTTPClient{
 			HTTPClient: httpClient,
 		},
 		RetryStrategy: &reqrepeater.UniformRetryStrategy{ // FIXME call retry strategy could be part of options

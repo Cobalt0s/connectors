@@ -5,11 +5,9 @@ import (
 	"strings"
 )
 
-var (
-	ErrInvalidParentRef = errors.New("referenced parent type doesn't exist for schema")
-)
+var ErrInvalidParentRef = errors.New("referenced parent type doesn't exist for schema")
 
-// EntitySet organised by Entity.Name
+// EntitySet organised by Entity.Name.
 type EntitySet map[string]*Entity
 
 func NewEntitySet() EntitySet {
@@ -19,10 +17,12 @@ func NewEntitySet() EntitySet {
 func (s EntitySet) GetNames() []string {
 	names := make([]string, len(s))
 	i := 0
+
 	for name := range s {
 		names[i] = name
 		i++
 	}
+
 	return names
 }
 
@@ -34,6 +34,7 @@ func (s EntitySet) GetOrCreate(name, parentName string) *Entity {
 			parentName: parentName,
 		}
 	}
+
 	return s[name]
 }
 
@@ -49,7 +50,7 @@ func (e *Entity) AddProperty(property string) {
 }
 
 // GetRawParentName parents that are defined under schema are prefixed with its alias
-// this strips the prefix
+// this strips the prefix.
 func (e *Entity) GetRawParentName(schemaAlias string) string {
 	// strip prefix if we are using local schema
 	name, _ := strings.CutPrefix(e.parentName, schemaAlias+".")
@@ -65,18 +66,22 @@ func (s EntitySet) MatchParentsWithChildren(schemaAlias string) error {
 			if !ok {
 				return ErrInvalidParentRef
 			}
+
 			entity.parent = parent
 		}
 	}
+
 	return nil
 }
 
-// GetAllProperties recursive function that includes inherited fields from parents
+// GetAllProperties recursive function that includes inherited fields from parents.
 func (e *Entity) GetAllProperties() []string {
 	if e.parent == nil {
 		// this is root
 		return e.properties
 	}
+
 	parentProperties := e.parent.GetAllProperties()
+
 	return append(e.properties, parentProperties...)
 }

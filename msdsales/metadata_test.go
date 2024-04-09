@@ -18,9 +18,7 @@ import (
 	"github.com/go-test/deep"
 )
 
-var (
-	metadataTestInputFile = "metadata.xml"
-)
+var metadataTestInputFile = "metadata.xml"
 
 func Test_ListObjectMetadata(t *testing.T) {
 	t.Parallel()
@@ -191,6 +189,7 @@ func Test_ListObjectMetadata(t *testing.T) {
 					t.Fatalf("%s: expected Error: (%v), got: (%v)", tt.name, expectedErr, err)
 				}
 			}
+
 			if tt.expectedFieldsCount != nil {
 				// we are comparing if number of fields match under ListObjectMetadataResult.Result
 				for entityName, count := range tt.expectedFieldsCount {
@@ -198,13 +197,13 @@ func Test_ListObjectMetadata(t *testing.T) {
 					if !ok {
 						t.Fatalf("%s: expected entity was missing: (%v)", tt.name, entityName)
 					}
+
 					got := len(entity.FieldsMap)
 					if got != count {
 						t.Fatalf("%s: expected entity '%v' to have (%v) fields got: (%v)",
 							tt.name, entityName, count, got)
 					}
 				}
-
 			} else {
 				// usual comparison of ListObjectMetadataResult
 				if !reflect.DeepEqual(output, tt.expected) {
@@ -219,11 +218,14 @@ func Test_ListObjectMetadata(t *testing.T) {
 
 func readTestFile(testFileName string) ([]byte, error) {
 	_, runnerLocation, _, _ := runtime.Caller(0)
+
 	workingDir, err := os.Getwd()
 	if err != nil {
 		return nil, err
 	}
+
 	relativePath, _ := strings.CutPrefix(runnerLocation, workingDir)
 	testDir := path.Join(".", relativePath, "../test")
+
 	return os.ReadFile(testDir + "/" + testFileName)
 }

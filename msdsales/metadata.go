@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/amp-labs/connectors/common"
 	"github.com/subchen/go-xmldom"
 )
@@ -51,9 +52,10 @@ func (c *Connector) ListObjectMetadata(
 	}, nil
 }
 
-// collects field properties and groups them in entities, other data in XML is ignored
+// collects field properties and groups them in entities, other data in XML is ignored.
 func extractEntities(root *xmldom.Node) (EntitySet, error) {
 	querySalesSchema := fmt.Sprintf("/DataServices/Schema[@Namespace='%v']", SalesMetadataSchemaName)
+
 	salesSchema := root.QueryOne(querySalesSchema)
 	if salesSchema == nil {
 		return nil, ErrMissingSchema
@@ -92,21 +94,26 @@ func extractEntities(root *xmldom.Node) (EntitySet, error) {
 	if err := entities.MatchParentsWithChildren(schemaAlias); err != nil {
 		return nil, errors.Join(ErrMetadataProcessing, err)
 	}
+
 	return entities, nil
 }
 
 func convertEntitySetToMetadataSet(names []string, entities EntitySet) (map[string]common.ObjectMetadata, error) {
 	result := map[string]common.ObjectMetadata{}
+
 	for _, name := range names {
 		entity, ok := entities[name]
 		if !ok {
 			return nil, fmt.Errorf("unknown name %v %w", name, ErrObjectNotFound)
 		}
+
 		properties := entity.GetAllProperties()
 		fieldsMap := make(map[string]string)
+
 		for _, p := range properties {
 			fieldsMap[p] = p
 		}
+
 		result[name] = common.ObjectMetadata{
 			DisplayName: name,
 			FieldsMap:   fieldsMap,
