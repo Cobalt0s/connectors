@@ -11,6 +11,12 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
+)
+
+var (
+	objectName       = "account"
+	objectNamePlural = "accounts"
 )
 
 // we want to compare fields returned by read and schema properties provided by metadata methods
@@ -32,7 +38,7 @@ func main() {
 	defer utils.Close(conn)
 
 	response, err := conn.Read(ctx, common.ReadParams{
-		ObjectName: "accounts",
+		ObjectName: objectNamePlural,
 		PageSize:   1,
 	})
 	if err != nil {
@@ -42,15 +48,17 @@ func main() {
 		utils.Fail("expected to read exactly one record", "error", err)
 	}
 
+	beforeCall := time.Now()
 	metadata, err := conn.ListObjectMetadata(ctx, []string{
-		"account",
+		objectName,
 	})
 	if err != nil {
 		utils.Fail("error listing metadata for microsoft sales", "error", err)
 	}
+	fmt.Printf("ListObjectMetadata took %.2f seconds.\n", time.Since(beforeCall).Seconds())
 
 	fmt.Println("Compare object metadata against endpoint response:")
-	mismatchErr := compareFieldsMatch(metadata, response.Data[0].Raw, "account")
+	mismatchErr := compareFieldsMatch(metadata, response.Data[0].Raw, objectName)
 	if mismatchErr != nil {
 		utils.Fail("schema and payload response have mismatching fields", "error", mismatchErr)
 	} else {

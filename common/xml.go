@@ -29,13 +29,13 @@ var (
 	ErrNoParens       = errors.New("value cannot contain < or >")
 )
 
-// XMLHTTPClient TODO
+// XMLHTTPClient speaks from http client in XML
 type XMLHTTPClient struct {
 	HTTPClient *HTTPClient // underlying HTTP client. Required.
 }
 
 type XMLHTTPResponse struct {
-	// TODO
+	// bodyBytes is the raw response body.
 	bodyBytes []byte
 
 	// Code is the HTTP status code of the response.
@@ -44,7 +44,7 @@ type XMLHTTPResponse struct {
 	// Headers are the HTTP headers of the response.
 	Headers http.Header
 
-	// TODO
+	// Body is the unmarshalled response body in XML form. Content is the same as bodyBytes
 	Body *xmldom.Document
 }
 
@@ -55,7 +55,7 @@ func (r XMLHTTPResponse) GetRoot() (*xmldom.Node, error) {
 	return r.Body.Root, nil
 }
 
-// Get makes a GET request to the given URL and returns the response body as a JSON object.
+// Get makes a GET request to the given URL and returns the response body as a XML object.
 // If the response is not a 2xx, an error is returned. If the response is a 401, the caller should
 // refresh the access token and retry the request. If errorHandler is nil, then the default error
 // handler is used. If not, the caller can inject their own error handling logic.
@@ -70,11 +70,11 @@ func (j *XMLHTTPClient) Get(ctx context.Context, url string, headers ...Header) 
 
 // parseXMLResponse parses the given HTTP response and returns a XMLHTTPResponse.
 func parseXMLResponse(res *http.Response, body []byte) (*XMLHTTPResponse, error) {
-	// empty response body should not be parsed
 	if len(body) == 0 {
-		return nil, nil //nolint:nilnil
+		// Empty XML response is not allowed
+		return nil, ErrNotXML
 	}
-	// Ensure the response is JSON
+	// Ensure the response is XML
 	ct := res.Header.Get("Content-Type")
 	if len(ct) > 0 {
 		mimeType, _, err := mime.ParseMediaType(ct)
@@ -252,12 +252,12 @@ func (x *XMLData) String() string {
 
 	end := x.endTag()
 
-	chilren := []string{}
+	var children []string
 	for _, child := range x.Children {
-		chilren = append(chilren, child.String())
+		children = append(children, child.String())
 	}
 
-	return fmt.Sprintf("%s%s%s", start, strings.Join(chilren, ""), end)
+	return fmt.Sprintf("%s%s%s", start, strings.Join(children, ""), end)
 }
 
 func (x *XMLData) startTag() string {
@@ -268,19 +268,19 @@ func (x *XMLData) startTag() string {
 
 	attrStr := strings.Join(attributes, " ")
 
-	var close string //nolint:predeclared
+	var closingTag string //nolint:predeclared
 
 	if x.SelfClosing {
-		close = closeParenWithSlash
+		closingTag = closeParenWithSlash
 	} else {
-		close = closeParen
+		closingTag = closeParen
 	}
 
 	if attrStr == "" {
-		return fmt.Sprintf("%s%s%s", openParen, x.XMLName, close)
+		return fmt.Sprintf("%s%s%s", openParen, x.XMLName, closingTag)
 	}
 
-	return fmt.Sprintf("%s%s %s%s", openParen, x.XMLName, attrStr, close)
+	return fmt.Sprintf("%s%s %s%s", openParen, x.XMLName, attrStr, closingTag)
 }
 
 func (x *XMLData) endTag() string {

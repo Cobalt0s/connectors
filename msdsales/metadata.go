@@ -11,6 +11,7 @@ import (
 var (
 	SalesMetadataSchemaName = "Microsoft.Dynamics.CRM"
 
+	ErrMissingSchema      = fmt.Errorf("missing schema %v in response", SalesMetadataSchemaName)
 	ErrMetadataProcessing = errors.New("metadata couldn't be processed")
 	ErrObjectNotFound     = errors.New("object not found")
 )
@@ -52,6 +53,12 @@ func (c *Connector) ListObjectMetadata(
 
 // collects field properties and groups them in entities, other data in XML is ignored
 func extractEntities(root *xmldom.Node) (EntitySet, error) {
+	querySalesSchema := fmt.Sprintf("/DataServices/Schema[@Namespace='%v']", SalesMetadataSchemaName)
+	salesSchema := root.QueryOne(querySalesSchema)
+	if salesSchema == nil {
+		return nil, ErrMissingSchema
+	}
+
 	entities := NewEntitySet()
 	// List all field properties that exist for current schema
 	queryListAllSchemaProperties := fmt.Sprintf(
@@ -80,9 +87,8 @@ func extractEntities(root *xmldom.Node) (EntitySet, error) {
 		}
 	})
 
-	querySalesSchema := fmt.Sprintf("/DataServices/Schema[@Namespace='%v']", SalesMetadataSchemaName)
-	schemaAlias := root.QueryOne(querySalesSchema).GetAttributeValue("Alias")
 	// link every child with parent completing hierarchy
+	schemaAlias := salesSchema.GetAttributeValue("Alias")
 	if err := entities.MatchParentsWithChildren(schemaAlias); err != nil {
 		return nil, errors.Join(ErrMetadataProcessing, err)
 	}
