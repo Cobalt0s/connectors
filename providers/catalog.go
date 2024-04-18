@@ -50,6 +50,7 @@ const (
 	Google                              Provider = "google"
 	GoogleContacts                      Provider = "googleContacts"
 	GoogleMail                          Provider = "googleMail"
+	SugarCRM                            Provider = "sugarCRM"
 )
 
 // ================================================================================
@@ -1195,6 +1196,36 @@ var catalog = CatalogType{ // nolint:gochecknoglobals
 			TokenURL:                  "https://oauth2.googleapis.com/token",
 			ExplicitScopesRequired:    true,
 			ExplicitWorkspaceRequired: false,
+			TokenMetadataFields: TokenMetadataFields{
+				ScopesField: "scope",
+			},
+		},
+		Support: Support{
+			BulkWrite: BulkWriteSupport{
+				Insert: false,
+				Update: false,
+				Upsert: false,
+				Delete: false,
+			},
+			Proxy:     false,
+			Read:      false,
+			Subscribe: false,
+			Write:     false,
+		},
+	},
+
+	SugarCRM: {
+		AuthType: Oauth2,
+		BaseURL:  "{{.workspace}}",
+		OauthOpts: OauthOpts{
+			GrantType: ClientCredentials, // 2-legged password grant
+			TokenURL:  "{{.workspace}}/rest/{{.restVersion}}/oauth2/token",
+			// "substitutions": {
+			//    "workspace": "http://localhost:8000/ampersand-sugar",
+			// 	  "restVersion": "v11_24"
+			// },
+			ExplicitScopesRequired:    false,
+			ExplicitWorkspaceRequired: true,
 			TokenMetadataFields: TokenMetadataFields{
 				ScopesField: "scope",
 			},
