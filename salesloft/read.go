@@ -16,7 +16,7 @@ func (c *Connector) Read(ctx context.Context, config common.ReadParams) (*common
 
 	if len(config.NextPage) == 0 {
 		// First page
-		link = linkutils.NewURL(c.getURL(config.ObjectName))
+		link = c.getURL(config.ObjectName)
 		link.WithQueryParam("per_page", strconv.Itoa(DefaultPageSize))
 	} else {
 		// Next page

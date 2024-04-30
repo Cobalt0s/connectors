@@ -1,6 +1,7 @@
 package salesloft
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/amp-labs/connectors/common"
@@ -43,8 +44,13 @@ func getRecords(node *ajson.Node) ([]map[string]any, error) {
 
 func makeNextRecordsURL(reqLink *linkutils.URL) common.NextPageFunc {
 	return func(node *ajson.Node) (string, error) {
-		nested, err := common.JSONManager.GetNestedNode(node, "metadata.paging")
+		nested, err := common.JSONManager.GetNestedNode(node, []string{"metadata", "paging"})
 		if err != nil {
+			if errors.Is(err, common.ErrKeyNotFound) {
+				// list resource doesn't support pagination, hence no next page
+				return "", nil
+			}
+
 			return "", err
 		}
 

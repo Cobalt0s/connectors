@@ -84,11 +84,12 @@ const (
 )
 
 var (
-	ErrNotArray   = errors.New("JSON value is not an array")
-	ErrNotObject  = errors.New("JSON value is not an object")
-	ErrNotString  = errors.New("JSON value is not a string")
-	ErrNotNumeric = errors.New("JSON value is not a numeric")
-	ErrNotInteger = errors.New("JSON value is not an integer")
+	ErrNotArray    = errors.New("JSON value is not an array")
+	ErrNotObject   = errors.New("JSON value is not an object")
+	ErrNotString   = errors.New("JSON value is not a string")
+	ErrNotNumeric  = errors.New("JSON value is not a numeric")
+	ErrNotInteger  = errors.New("JSON value is not an integer")
+	ErrKeyNotFound = errors.New("key not found")
 
 	// JSONManager is a helpful wrapper of ajson library that adds errors when querying JSON payload
 	// and provides common conversion methods.
@@ -135,9 +136,13 @@ func (m jsonManager) GetIntegerWithDefault(node *ajson.Node, key string, default
 }
 
 func (jsonManager) GetInteger(node *ajson.Node, key string, optional bool) (*int64, error) {
-	if optional && !node.HasKey(key) {
-		// null value in payload is allowed
-		return nil, nil // nolint:nilnil
+	if !node.HasKey(key) {
+		if optional {
+			// null value in payload is allowed
+			return nil, nil // nolint:nilnil
+		} else {
+			return nil, createKeyNotFoundErr(key)
+		}
 	}
 
 	innerNode, err := node.GetKey(key)
@@ -164,6 +169,10 @@ func (jsonManager) GetInteger(node *ajson.Node, key string, optional bool) (*int
 }
 
 func (jsonManager) GetArr(node *ajson.Node, key string) ([]*ajson.Node, error) {
+	if !node.HasKey(key) {
+		return nil, createKeyNotFoundErr(key)
+	}
+
 	records, err := node.GetKey(key)
 	if err != nil {
 		return nil, err
@@ -177,8 +186,8 @@ func (jsonManager) GetArr(node *ajson.Node, key string) ([]*ajson.Node, error) {
 	return arr, nil
 }
 
-func (m jsonManager) ArrSize(node *ajson.Node, key string) (int64, error) {
-	arr, err := m.GetArr(node, key)
+func (m jsonManager) ArrSize(node *ajson.Node, keys string) (int64, error) {
+	arr, err := m.GetArr(node, keys)
 	if err != nil {
 		return 0, err
 	}
@@ -200,9 +209,13 @@ func (m jsonManager) GetStringWithDefault(node *ajson.Node, key string, defaultV
 }
 
 func (jsonManager) GetString(node *ajson.Node, key string, optional bool) (*string, error) {
-	if optional && !node.HasKey(key) {
-		// null value in payload is allowed
-		return nil, nil // nolint:nilnil
+	if !node.HasKey(key) {
+		if optional {
+			// null value in payload is allowed
+			return nil, nil // nolint:nilnil
+		} else {
+			return nil, createKeyNotFoundErr(key)
+		}
 	}
 
 	innerNode, err := node.GetKey(key)
@@ -223,24 +236,43 @@ func (jsonManager) GetString(node *ajson.Node, key string, optional bool) (*stri
 }
 
 // GetNestedNode reaches into the JSON node by zooming via dot separated keys
-// Ex: keysZoom = item.shipping.address => item has object with shipping key and so on.
-func (jsonManager) GetNestedNode(node *ajson.Node, keysZoom string) (inner *ajson.Node, err error) {
-	inner = node
-	keys := strings.Split(keysZoom, KeysZoomSeparator)
+// Ex: keys = item.shipping.address => item has object with shipping key and so on.
+func (jsonManager) GetNestedNode(node *ajson.Node, keys []string) (*ajson.Node, error) {
+	var err error
 
 	// traverse nested JSON, use every key to zoom in
 	for _, key := range keys {
-		inner, err = inner.GetKey(key)
+		if !node.HasKey(key) {
+			message := fmt.Sprintf("%v; zoom=%v", key, strings.Join(keys, KeysZoomSeparator))
+
+			return nil, createKeyNotFoundErr(message)
+		}
+
+		node, err = node.GetKey(key)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	if !inner.IsObject() {
+	if !node.IsObject() {
 		return nil, ErrNotObject
 	}
 
-	return inner, nil
+	return node, nil
+}
+
+func (jsonManager) ObjToMap(node *ajson.Node) (map[string]any, error) {
+	data, err := node.GetObject()
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]any)
+	for k, v := range data {
+		result[k] = v
+	}
+
+	return result, nil
 }
 
 func handleNullNode(key string, optional bool) error {
@@ -253,4 +285,12 @@ func handleNullNode(key string, optional bool) error {
 
 func formatProblematicKeyError(key string, baseErr error) error {
 	return fmt.Errorf("problematic key: %v %w", key, baseErr)
+}
+
+func DotZoom(keys string) []string {
+	return strings.Split(keys, KeysZoomSeparator)
+}
+
+func createKeyNotFoundErr(key string) error {
+	return errors.Join(ErrKeyNotFound, fmt.Errorf("key: [%v]", key)) // nolint:goerr113
 }

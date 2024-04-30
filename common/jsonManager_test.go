@@ -260,7 +260,7 @@ func TestJsonManager_GetNestedNode(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := JSONManager.GetNestedNode(j, tt.input)
+			_, err := JSONManager.GetNestedNode(j, DotZoom(tt.input))
 			if tt.withErr {
 				if err == nil {
 					t.Fatalf("%s: expected error while none received", tt.name)

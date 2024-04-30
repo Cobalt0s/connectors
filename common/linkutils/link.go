@@ -102,3 +102,11 @@ func (u *URL) fragmentToString() string {
 
 	return "#" + u.fragment
 }
+
+func (u *URL) AddPath(paths ...string) *URL {
+	delegateURL, _ := url.Parse(u.baseURL)
+	delegateURL = delegateURL.JoinPath(paths...)
+	u.baseURL = delegateURL.String()
+
+	return u
+}

@@ -13,31 +13,23 @@ import (
 	"github.com/amp-labs/connectors/common/interpreter"
 	"github.com/amp-labs/connectors/test/utils/mockutils"
 	"github.com/go-test/deep"
-	"github.com/spyzhov/ajson"
 )
 
 func TestRead(t *testing.T) { //nolint:funlen,gocognit,cyclop,maintidx
 	t.Parallel()
 
-	responseEmptyRead, err := mockutils.DataFromFile("read-empty.json")
-	if err != nil {
-		t.Fatalf("failed to start test, input file missing, %v", err)
-	}
-
-	responseListPeople, err := mockutils.DataFromFile("read-list-people.json")
-	if err != nil {
-		t.Fatalf("failed to start test, input file missing, %v", err)
-	}
+	responseEmptyRead := mockutils.DataFromFile(t, "read-empty.json")
+	responseListPeople := mockutils.DataFromFile(t, "read-list-people.json")
+	responseListUsers := mockutils.DataFromFile(t, "read-list-users.json")
 
 	tests := []struct {
-		name             string
-		input            common.ReadParams
-		server           *httptest.Server
-		connector        Connector
-		comparator       func(serverURL string, actual, expected *common.ReadResult) bool // custom comparison
-		expected         *common.ReadResult
-		expectedErrs     []error
-		expectedErrTypes []error
+		name         string
+		input        common.ReadParams
+		server       *httptest.Server
+		connector    Connector
+		comparator   func(serverURL string, actual, expected *common.ReadResult) bool // custom comparison
+		expected     *common.ReadResult
+		expectedErrs []error
 	}{
 		{
 			name: "Mime response header expected",
@@ -68,7 +60,7 @@ func TestRead(t *testing.T) { //nolint:funlen,gocognit,cyclop,maintidx
 					"garbage": {}
 				}`)
 			})),
-			expectedErrTypes: []error{ajson.Error{}},
+			expectedErrs: []error{common.ErrKeyNotFound},
 		},
 		{
 			name: "Incorrect data type in payload",
@@ -108,8 +100,7 @@ func TestRead(t *testing.T) { //nolint:funlen,gocognit,cyclop,maintidx
 			expected: &common.ReadResult{
 				NextPage: "{{testServerURL}}?page=2&per_page=100",
 			},
-			expectedErrs:     nil,
-			expectedErrTypes: nil,
+			expectedErrs: nil,
 		},
 		{
 			name: "Successful read with 25 entries, checking one row",
@@ -169,6 +160,38 @@ func TestRead(t *testing.T) { //nolint:funlen,gocognit,cyclop,maintidx
 			},
 			expectedErrs: nil,
 		},
+		{
+			name: "Listing Users without pagination payload",
+			input: common.ReadParams{
+				Fields: []string{"email", "guid"},
+			},
+			server: httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				_, _ = w.Write(responseListUsers)
+			})),
+			comparator: func(baseURL string, actual, expected *common.ReadResult) bool {
+				return mockutils.ReadResultComparator.SubsetFields(actual, expected) &&
+					mockutils.ReadResultComparator.SubsetRaw(actual, expected)
+			},
+			expected: &common.ReadResult{
+				Rows: 1,
+				Data: []common.ReadResultRow{{
+					Fields: map[string]any{
+						"guid":  "0863ed13-7120-479b-8650-206a3679e2fb",
+						"email": "somebody@withampersand.com",
+					},
+					Raw: map[string]any{
+						"name":       "Int User",
+						"first_name": "Int",
+						"last_name":  "User",
+					},
+				}},
+				NextPage: "",
+				Done:     false,
+			},
+			expectedErrs: nil,
+		},
 	}
 
 	for _, tt := range tests {
@@ -194,7 +217,7 @@ func TestRead(t *testing.T) { //nolint:funlen,gocognit,cyclop,maintidx
 			// start of tests
 			output, err := connector.Read(ctx, tt.input)
 			if err != nil {
-				if len(tt.expectedErrs)+len(tt.expectedErrTypes) == 0 {
+				if len(tt.expectedErrs) == 0 {
 					t.Fatalf("%s: expected no errors, got: (%v)", tt.name, err)
 				}
 			} else {
@@ -202,19 +225,9 @@ func TestRead(t *testing.T) { //nolint:funlen,gocognit,cyclop,maintidx
 				if len(tt.expectedErrs) != 0 {
 					t.Fatalf("%s: expected errors (%v), but got nothing", tt.name, tt.expectedErrs)
 				}
-
-				if len(tt.expectedErrTypes) != 0 {
-					t.Fatalf("%s: expected error types (%v), but got nothing", tt.name, tt.expectedErrTypes)
-				}
 			}
 
 			// check every error
-			for _, expectedErr := range tt.expectedErrTypes {
-				if reflect.TypeOf(err) != reflect.TypeOf(expectedErr) {
-					t.Fatalf("%s: expected Error type: (%T), got: (%T)", tt.name, expectedErr, err)
-				}
-			}
-
 			for _, expectedErr := range tt.expectedErrs {
 				if !errors.Is(err, expectedErr) && !strings.Contains(err.Error(), expectedErr.Error()) {
 					t.Fatalf("%s: expected Error: (%v), got: (%v)", tt.name, expectedErr, err)

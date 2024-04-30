@@ -18,12 +18,11 @@ func (readResultComparator) SubsetRaw(actual, expected *common.ReadResult) bool 
 		return false
 	}
 
-	for i := range expected.Data {
-		if len(expected.Data[i].Raw) == 0 {
-			panic("invalid test, there is no point to check if empty set belongs to any set; " +
-				"please specify expected Raw response")
-		}
+	if len(expected.Data) == 0 || len(expected.Data[0].Raw) == 0 {
+		invalidTest("please specify expected Raw response")
+	}
 
+	for i := range expected.Data {
 		for field := range expected.Data[i].Raw {
 			if !reflect.DeepEqual(actual.Data[i].Raw[field], expected.Data[i].Raw[field]) {
 				return false
@@ -40,12 +39,11 @@ func (readResultComparator) SubsetFields(actual, expected *common.ReadResult) bo
 		return false
 	}
 
-	for i := range expected.Data {
-		if len(expected.Data[i].Fields) == 0 {
-			panic("invalid test, there is no point to check if empty set belongs to any set; " +
-				"please specify expected Fields response")
-		}
+	if len(expected.Data) == 0 || len(expected.Data[0].Fields) == 0 {
+		invalidTest("please specify expected Fields response")
+	}
 
+	for i := range expected.Data {
 		for field := range expected.Data[i].Fields {
 			if !reflect.DeepEqual(actual.Data[i].Fields[field], expected.Data[i].Fields[field]) {
 				return false
@@ -54,4 +52,8 @@ func (readResultComparator) SubsetFields(actual, expected *common.ReadResult) bo
 	}
 
 	return true
+}
+
+func invalidTest(message string) {
+	panic("invalid test, there is no point to check if empty set belongs to any set; " + message)
 }
