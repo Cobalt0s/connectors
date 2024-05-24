@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/amp-labs/connectors/microsoftdynamicscrm/metadata"
 
 	"github.com/amp-labs/connectors/common"
 	"github.com/subchen/go-xmldom"
@@ -17,7 +18,7 @@ var (
 	ErrObjectNotFound     = errors.New("object not found")
 )
 
-// Please note: MSDynamics API does not return proper display names for objects and fields,
+// ListObjectMetadata Please note: MSDynamics API does not return proper display names for objects and fields,
 // so the ListObjectMetadataResult will have display names that look like "accountleads".
 func (c *Connector) ListObjectMetadata(
 	ctx context.Context, objectNames []string,
@@ -27,12 +28,16 @@ func (c *Connector) ListObjectMetadata(
 		return nil, common.ErrMissingObjects
 	}
 
-	rsp, err := c.getXML(ctx, c.getURL("$metadata"))
-	if err != nil {
-		return nil, err
-	}
-
-	root, err := rsp.GetRoot()
+	//rsp, err := c.getXML(ctx, c.getURL("$metadata"))
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//root, err := rsp.GetRoot()
+	//if err != nil {
+	//	return nil, err
+	//}
+	root, err := metadata.Load()
 	if err != nil {
 		return nil, err
 	}
@@ -45,6 +50,13 @@ func (c *Connector) ListObjectMetadata(
 	result, err := convertEntitySetToMetadataSet(objectNames, entities)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, child := range entities["EnumAttributeMetadata"].children {
+		//for _, grand := range child.children {
+		fmt.Println(child.Name)
+		//}
+
 	}
 
 	return &common.ListObjectMetadataResult{

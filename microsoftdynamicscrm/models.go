@@ -32,6 +32,7 @@ func (s EntitySet) GetOrCreate(name, parentName string) *Entity {
 			Name:       name,
 			properties: make([]string, 0),
 			parentName: parentName,
+			children:   make([]*Entity, 0),
 		}
 	}
 
@@ -45,6 +46,7 @@ type Entity struct {
 	properties []string
 	parentName string
 	parent     *Entity
+	children   []*Entity
 }
 
 func (e *Entity) AddProperty(property string) {
@@ -72,11 +74,16 @@ func (s EntitySet) MatchParentsWithChildren(schemaAlias string) error {
 				return ErrInvalidParentRef
 			}
 
-			entity.parent = parent
+			entity.SetParent(parent)
 		}
 	}
 
 	return nil
+}
+
+func (e *Entity) SetParent(parent *Entity) {
+	e.parent = parent
+	parent.children = append(parent.children, e)
 }
 
 // GetAllProperties recursive function that includes inherited fields from parents.

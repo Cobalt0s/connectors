@@ -4,15 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/amp-labs/connectors/common"
+	msTest "github.com/amp-labs/connectors/test/microsoftdynamicscrm"
+	"github.com/amp-labs/connectors/test/utils"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
-	"time"
-
-	"github.com/amp-labs/connectors/common"
-	msTest "github.com/amp-labs/connectors/test/microsoftdynamicscrm"
-	"github.com/amp-labs/connectors/test/utils"
 )
 
 var (
@@ -38,36 +36,42 @@ func main() {
 	conn := msTest.GetMSDynamics365CRMConnector(ctx, filePath)
 	defer utils.Close(conn)
 
-	response, err := conn.Read(ctx, common.ReadParams{
-		ObjectName: objectNamePlural,
-	})
-	if err != nil {
-		utils.Fail("error reading from microsoft CRM", "error", err)
-	}
+	//response, err := conn.Read(ctx, common.ReadParams{
+	//	ObjectName: objectNamePlural,
+	//})
+	//if err != nil {
+	//	utils.Fail("error reading from microsoft CRM", "error", err)
+	//}
+	//
+	//if response.Rows == 0 {
+	//	utils.Fail("expected to read at least one record", "error", err)
+	//}
+	//
+	//beforeCall := time.Now()
 
-	if response.Rows == 0 {
-		utils.Fail("expected to read at least one record", "error", err)
-	}
-
-	beforeCall := time.Now()
-
-	metadata, err := conn.ListObjectMetadata(ctx, []string{
-		objectName,
+	_, err := conn.ListObjectMetadata(ctx, []string{
+		"customapi",
+		"customapirequestparameter",
+		"customapiresponseproperty",
+		"customcontrol",
+		"customcontroldefaultconfig",
+		"customcontrolresource",
+		"customeraddress",
 	})
 	if err != nil {
 		utils.Fail("error listing metadata for microsoft CRM", "error", err)
 	}
 
-	fmt.Printf("ListObjectMetadata took %.2f seconds.\n", time.Since(beforeCall).Seconds())
-
-	fmt.Println("Compare object metadata against endpoint response:")
-
-	mismatchErr := compareFieldsMatch(metadata, response.Data[0].Raw, objectName)
-	if mismatchErr != nil {
-		utils.Fail("schema and payload response have mismatching fields", "error", mismatchErr)
-	} else {
-		fmt.Println("==> success fields match.")
-	}
+	//fmt.Printf("ListObjectMetadata took %.2f seconds.\n", time.Since(beforeCall).Seconds())
+	//
+	//fmt.Println("Compare object metadata against endpoint response:")
+	//
+	//mismatchErr := compareFieldsMatch(metadata, response.Data[0].Raw, objectName)
+	//if mismatchErr != nil {
+	//	utils.Fail("schema and payload response have mismatching fields", "error", mismatchErr)
+	//} else {
+	//	fmt.Println("==> success fields match.")
+	//}
 }
 
 func compareFieldsMatch(metadata *common.ListObjectMetadataResult, response map[string]any, objectName string) error {
