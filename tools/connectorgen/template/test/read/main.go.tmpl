@@ -45,7 +45,7 @@ func main() {
 		utils.Fail("error reading from {{ .Provider }}", "error", err)
 	}
 
-	fmt.Println("Reading {{ .ObjectName }}s..")
+	fmt.Println("Reading {{ .ObjectName }}..")
 	utils.DumpJSON(res, os.Stdout)
 
 	if res.Rows > {{ .Package }}.DefaultPageSize {

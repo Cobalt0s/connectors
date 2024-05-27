@@ -1,9 +1,9 @@
 package cmd
 
 import (
+	"log"
 	"path/filepath"
 
-	"github.com/iancoleman/strcase"
 	"github.com/spf13/cobra"
 )
 
@@ -16,6 +16,7 @@ var baseCmd = &cobra.Command{ //nolint:gochecknoglobals
 		applyTemplatesFromDirectory("base", recipe,
 			filepath.Join(recipe.Output, recipe.Package),
 		)
+		completed(recipe)
 	},
 }
 
@@ -30,7 +31,8 @@ var readCmd = &cobra.Command{ //nolint:gochecknoglobals
 		applyTemplatesFromDirectory("read", recipe,
 			filepath.Join(recipe.Output, recipe.Package),
 		)
-		createManualTest(recipe, strcase.ToCamel(args[0]), "read")
+		createManualTest(recipe, args[0], "read")
+		completed(recipe)
 	},
 }
 
@@ -45,7 +47,8 @@ var writeCmd = &cobra.Command{ //nolint:gochecknoglobals
 		applyTemplatesFromDirectory("write", recipe,
 			filepath.Join(recipe.Output, recipe.Package),
 		)
-		createManualTest(recipe, strcase.ToCamel(args[0]), "write-delete")
+		createManualTest(recipe, args[0], "write-delete")
+		completed(recipe)
 	},
 }
 
@@ -60,7 +63,8 @@ var deleteCmd = &cobra.Command{ //nolint:gochecknoglobals
 		applyTemplatesFromDirectory("delete", recipe,
 			filepath.Join(recipe.Output, recipe.Package),
 		)
-		createManualTest(recipe, strcase.ToCamel(args[0]), "write-delete")
+		createManualTest(recipe, args[0], "write-delete")
+		completed(recipe)
 	},
 }
 
@@ -75,7 +79,8 @@ var metadataCmd = &cobra.Command{ //nolint:gochecknoglobals
 		applyTemplatesFromDirectory("metadata", recipe,
 			filepath.Join(recipe.Output, recipe.Package),
 		)
-		createManualTest(recipe, strcase.ToCamel(args[0]), "metadata")
+		createManualTest(recipe, args[0], "metadata")
+		completed(recipe)
 	},
 }
 
@@ -96,6 +101,10 @@ func createManualTest(recipe *Recipe, objectName string, directory string) {
 	applyTemplatesFromDirectory(filepath.Join("test", directory), data,
 		filepath.Join(recipe.Output, "test", recipe.Package, directory),
 	)
+}
+
+func completed(recipe *Recipe) {
+	log.Printf("Template generation completed.\nLocate output at [%v] directory\n", recipe.Output)
 }
 
 func init() {

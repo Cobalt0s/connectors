@@ -6,14 +6,27 @@ This script is CLI that allows to generate template to start implementing your c
 At the beginning generate `Base`, then proceed to `Read`, then in any order `Write/Delete` or `Metadata`.
 
 Every command requires 3 flags:
-* `-o --output` Directory where to save all files. Since it overrides files specify temporary directory. Ex: `conn-tmpl-example`
+* `-o --output` Directory where to save all files. Since it overrides files specify temporary directory. By default, it is a package name with `-output-gen` suffix.
 * `-p --package` The name of golang package. Ex: `microsoftdynamicscrm`
 * `-n --provider` Catalog name for this provider. Ex: `DynamicsCRM`
+
+# Compile
+
+Use makefile command to generate executable under bin which is used later.
+
+```shell
+make connector-gen
+```
+
+# Commands
 
 ## Base
 
 Start with base connector files. These will provide base struct, constructor method, params, etc.
 
+```shell
+./bin/cgen base -p xero
+```
 ```shell
 ./bin/cgen base -o microsoftdynamics-example -p msdcrm -n MicrosoftDynamicsCRM
 ```
@@ -30,6 +43,9 @@ Sample read method with mock and unit tests.
 Test will read `Contacts` from Microsoft APIs.
 
 ```shell
+./bin/cgen read contact -p xero
+```
+```shell
 ./bin/cgen read contact -o microsoftdynamics-example -p msdcrm -n MicrosoftDynamicsCRM
 ```
 
@@ -40,9 +56,15 @@ Template will provide test where `lead` will be created, updated and then remove
 
 * Write
 ```shell
+./bin/cgen write lead -p xero
+```
+```shell
 ./bin/cgen write lead -o microsoftdynamics-example -p msdcrm -n MicrosoftDynamicsCRM
 ```
 * Delete
+```shell
+./bin/cgen delete lead -p xero
+```
 ```shell
 ./bin/cgen delete lead -o microsoftdynamics-example -p msdcrm -n MicrosoftDynamicsCRM
 ```
@@ -53,6 +75,9 @@ Sample ListObjectMetadata method with mock and unit tests.
 Template will have a manual test which will perform read request on `admin` and then ListObjectMetadata on `admin`.
 It will then check properties between them match.
 
+```shell
+./bin/cgen metadata account -p xero
+```
 ```shell
 ./bin/cgen metadata admin -o microsoftdynamics-example -p msdcrm -n MicrosoftDynamicsCRM
 ```

@@ -9,8 +9,10 @@ import (
 
 	"github.com/amp-labs/connectors/common"
 	"github.com/amp-labs/connectors/{{ .Package }}"
+	"github.com/amp-labs/connectors/common/naming"
 	connTest "github.com/amp-labs/connectors/test/{{ .Package }}"
 	"github.com/amp-labs/connectors/test/utils"
+	"github.com/amp-labs/connectors/test/utils/mockutils"
 )
 
 type {{ .ObjectName }}Payload struct { // TODO fill in properties
@@ -46,7 +48,7 @@ func main() {
 	fmt.Println("Creating {{ .ObjectName }}")
 
 	// NOTE: list view must have unique `Name`
-	view := create{{ .ObjectName }}(ctx, conn, &{{ .ObjectName }}Payload{
+	view := create{{ .ObjectName | camel }}(ctx, conn, &{{ .ObjectName }}Payload{
 		Name:       "Tom's Prospects",
 		View:       "companies",
 		ViewParams: "",
@@ -55,7 +57,7 @@ func main() {
 	})
 
 	fmt.Println("Updating some {{ .ObjectName }} properties")
-	update{{ .ObjectName }}(ctx, conn, view.RecordId, &{{ .ObjectName }}Payload{
+	update{{ .ObjectName | camel }}(ctx, conn, view.RecordId, &{{ .ObjectName }}Payload{
 		Name:      "Jerry's Prospects",
 		View:      "companies",
 		IsDefault: mockutils.Pointers.Bool(false),
@@ -63,9 +65,9 @@ func main() {
 
 	fmt.Println("View that {{ .ObjectName }} has changed accordingly")
 
-	res := read{{ .ObjectName }}s(ctx, conn)
+	res := read{{ .ObjectName | camel }}(ctx, conn)
 
-	updatedView := search{{ .ObjectName }}(res, "id", view.RecordId)
+	updatedView := search{{ .ObjectName | camel }}(res, "id", view.RecordId)
 	for k, v := range map[string]string{
 		"name":       "Jerry's Prospects",
 		"view":       "companies",
@@ -78,11 +80,11 @@ func main() {
 	}
 
 	fmt.Println("Removing this {{ .ObjectName }}")
-	remove{{ .ObjectName }}(ctx, conn, view.RecordId)
+	remove{{ .ObjectName | camel }}(ctx, conn, view.RecordId)
 	fmt.Println("> Successful test completion")
 }
 
-func search{{ .ObjectName }}(res *common.ReadResult, key, value string) map[string]any {
+func search{{ .ObjectName | camel }}(res *common.ReadResult, key, value string) map[string]any {
 	for _, data := range res.Data {
 		if mockutils.DoesObjectCorrespondToString(data.Fields[key], value) {
 			return data.Raw
@@ -94,7 +96,7 @@ func search{{ .ObjectName }}(res *common.ReadResult, key, value string) map[stri
 	return nil
 }
 
-func read{{ .ObjectName }}s(ctx context.Context, conn *{{ .Package }}.Connector) *common.ReadResult {
+func read{{ .ObjectName | camel }}(ctx context.Context, conn *{{ .Package }}.Connector) *common.ReadResult {
 	res, err := conn.Read(ctx, common.ReadParams{
 		ObjectName: objectName.String(),
 		Fields: []string{
@@ -108,7 +110,7 @@ func read{{ .ObjectName }}s(ctx context.Context, conn *{{ .Package }}.Connector)
 	return res
 }
 
-func create{{ .ObjectName }}(ctx context.Context, conn *{{ .Package }}.Connector, payload *{{ .ObjectName }}Payload) *common.WriteResult {
+func create{{ .ObjectName | camel }}(ctx context.Context, conn *{{ .Package }}.Connector, payload *{{ .ObjectName }}Payload) *common.WriteResult {
 	res, err := conn.Write(ctx, common.WriteParams{
 		ObjectName: objectName.String(),
 		RecordId:   "",
@@ -125,7 +127,7 @@ func create{{ .ObjectName }}(ctx context.Context, conn *{{ .Package }}.Connector
 	return res
 }
 
-func update{{ .ObjectName }}(ctx context.Context, conn *{{ .Package }}.Connector, viewID string, payload *{{ .ObjectName }}Payload) *common.WriteResult {
+func update{{ .ObjectName | camel }}(ctx context.Context, conn *{{ .Package }}.Connector, viewID string, payload *{{ .ObjectName }}Payload) *common.WriteResult {
 	res, err := conn.Write(ctx, common.WriteParams{
 		ObjectName: objectName.String(),
 		RecordId:   viewID,
@@ -142,7 +144,7 @@ func update{{ .ObjectName }}(ctx context.Context, conn *{{ .Package }}.Connector
 	return res
 }
 
-func remove{{ .ObjectName }}(ctx context.Context, conn *{{ .Package }}.Connector, viewID string) {
+func remove{{ .ObjectName | camel }}(ctx context.Context, conn *{{ .Package }}.Connector, viewID string) {
 	res, err := conn.Delete(ctx, common.DeleteParams{
 		ObjectName: objectName.String(),
 		RecordId:   viewID,

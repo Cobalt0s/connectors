@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/iancoleman/strcase"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -26,31 +27,41 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringP("provider", "n", "", "Provider name")
-	rootCmd.PersistentFlags().StringP("package", "p", "", "Package name")
+	rootCmd.PersistentFlags().StringP("package", "p", "", "Golang package name")
+	rootCmd.PersistentFlags().StringP("provider", "n", "",
+		"Provider name. By default <package> upper camel case.")
+	rootCmd.PersistentFlags().StringP("output", "o", "",
+		"Output directory. By default <package>-output-gen")
 
 	if err := errors.Join(
-		rootCmd.MarkPersistentFlagRequired("provider"),
 		rootCmd.MarkPersistentFlagRequired("package"),
-		viper.BindPFlag("provider", rootCmd.PersistentFlags().Lookup("provider")),
 		viper.BindPFlag("package", rootCmd.PersistentFlags().Lookup("package")),
+		viper.BindPFlag("provider", rootCmd.PersistentFlags().Lookup("provider")),
+		viper.BindPFlag("output", rootCmd.PersistentFlags().Lookup("output")),
 	); err != nil {
 		log.Fatal(err)
 	}
 }
 
 type Recipe struct {
-	Provider string
 	Package  string
+	Provider string
 	Output   string
 }
 
 func GetRecipe() *Recipe {
 	result := &Recipe{
-		Provider: viper.GetString("provider"),
 		Package:  viper.GetString("package"),
+		Provider: viper.GetString("provider"),
+		Output:   viper.GetString("output"),
 	}
-	result.Output = fmt.Sprintf("%v-output-gen", result.Package)
+	if len(result.Output) == 0 {
+		result.Output = fmt.Sprintf("%v-output-gen", result.Package)
+	}
+
+	if len(result.Provider) == 0 {
+		result.Provider = strcase.ToCamel(result.Package)
+	}
 
 	return result
 }

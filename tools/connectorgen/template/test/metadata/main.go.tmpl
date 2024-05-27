@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -57,7 +56,7 @@ func main() {
 
 	fmt.Println("Compare object metadata against endpoint response:")
 
-	mismatchErr := mockutils.ValidateReadConformsMetadata(objectName.String(), data, metadata)
+	mismatchErr := mockutils.ValidateReadConformsMetadata(objectName.String(), response.Data[0].Raw, metadata)
 	if mismatchErr != nil {
 		utils.Fail("schema and payload response have mismatching fields", "error", mismatchErr)
 	} else {
