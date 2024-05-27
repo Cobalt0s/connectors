@@ -9,12 +9,14 @@ import (
 	"syscall"
 
 	"github.com/amp-labs/connectors/common"
+	"github.com/amp-labs/connectors/common/naming"
 	connTest "github.com/amp-labs/connectors/test/{{ .Package }}"
 	"github.com/amp-labs/connectors/test/utils"
+	"github.com/amp-labs/connectors/test/utils/mockutils"
 )
 
 var (
-	objectName     = "{{ .ObjectName }}" // TODO replace object name with what it appears in endpoint path
+	objectName = naming.NewSingularString("{{ .ObjectName }}") // nolint: gochecknoglobals
 )
 
 // We want to compare fields returned by read and schema properties provided by metadata methods.
@@ -36,7 +38,7 @@ func main() {
 	defer utils.Close(conn)
 
 	response, err := conn.Read(ctx, common.ReadParams{
-		ObjectName: objectName,
+		ObjectName: objectName.Plural().String(), // TODO check endpoint path
 	})
 	if err != nil {
 		utils.Fail("error reading from {{ .Provider }}", "error", err)
@@ -47,7 +49,7 @@ func main() {
 	}
 
 	metadata, err := conn.ListObjectMetadata(ctx, []string{
-		objectName,
+		objectName.String(), // TODO check endpoint path
 	})
 	if err != nil {
 		utils.Fail("error listing metadata for {{ .Provider }}", "error", err)
@@ -55,35 +57,10 @@ func main() {
 
 	fmt.Println("Compare object metadata against endpoint response:")
 
-	mismatchErr := compareFieldsMatch(metadata, response.Data[0].Raw)
+	mismatchErr := mockutils.ValidateReadConformsMetadata(objectName.String(), data, metadata)
 	if mismatchErr != nil {
 		utils.Fail("schema and payload response have mismatching fields", "error", mismatchErr)
 	} else {
 		fmt.Println("==> success fields match.")
 	}
-}
-
-func compareFieldsMatch(metadata *common.ListObjectMetadataResult, response map[string]any) error {
-	fields := make(map[string]bool)
-
-	for field := range response {
-		fields[field] = false
-	}
-
-	mismatch := make([]error, 0)
-
-	for name := range metadata.Result[objectName].FieldsMap {
-		if _, found := fields[name]; found {
-			fields[name] = true
-		}
-	}
-
-	// every field from Read must be known to ListObjectMetadata
-	for name, found := range fields {
-		if !found {
-			mismatch = append(mismatch, fmt.Errorf("metadata schema is missing field %v", name))
-		}
-	}
-
-	return errors.Join(mismatch...)
 }

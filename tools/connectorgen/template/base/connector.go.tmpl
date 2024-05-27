@@ -67,7 +67,7 @@ func (c *Connector) String() string {
 
 // nolint:unused
 func (c *Connector) getURL(arg string) (*urlbuilder.URL, error) {
-	parts := []string{c.BaseURL, arg}
+	parts := []string{c.BaseURL, c.Module, arg}
 	filtered := make([]string, 0)
 
 	for _, part := range parts {

@@ -24,7 +24,7 @@ func (c *Connector) Delete(ctx context.Context, config common.DeleteParams) (*co
 
 	// TODO parse error response and handle it if any
 	// 204 NoContent is expected
-	_, err = c.delete(ctx, url.String())
+	_, err = c.Client.Delete(ctx, url.String())
 	if err != nil {
 		return nil, err
 	}
@@ -32,10 +32,4 @@ func (c *Connector) Delete(ctx context.Context, config common.DeleteParams) (*co
 	return &common.DeleteResult{
 		Success: true,
 	}, nil
-}
-
-func (c *Connector) delete(ctx context.Context, url string,
-	headers ...common.Header, // nolint:unparam
-) (*common.JSONHTTPResponse, error) {
-	return c.Client.Delete(ctx, url, headers...)
 }

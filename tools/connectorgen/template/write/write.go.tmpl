@@ -23,10 +23,10 @@ func (c *Connector) Write(ctx context.Context, config common.WriteParams) (*comm
 	if len(config.RecordId) == 0 {
 		// writing to the entity without id means
 		// that we are extending 'List' resource and creating a new record
-		write = c.post
+		write = c.Client.Post
 	} else {
 		// only put is supported for updating 'Single' resource
-		write = c.put // TODO use put/patch depending on API
+		write = c.Client.Put // TODO use put/patch depending on API
 
 		url.AddPath(config.RecordId)
 	}
@@ -76,16 +76,4 @@ func constructWriteResult(body *ajson.Node) (*common.WriteResult, error) {
 		Errors:   nil,
 		Data:     data,
 	}, nil
-}
-
-func (c *Connector) post(ctx context.Context, url string,
-	body any, headers ...common.Header, // nolint:unparam
-) (*common.JSONHTTPResponse, error) {
-	return c.Client.Post(ctx, url, body, headers...)
-}
-
-func (c *Connector) put(ctx context.Context, url string,
-	body any, headers ...common.Header, // nolint:unparam
-) (*common.JSONHTTPResponse, error) {
-	return c.Client.Put(ctx, url, body, headers...)
 }

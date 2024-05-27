@@ -8,9 +8,14 @@ import (
 	"syscall"
 
 	"github.com/amp-labs/connectors/common"
+	"github.com/amp-labs/connectors/common/naming"
 	"github.com/amp-labs/connectors/{{ .Package }}"
 	connTest "github.com/amp-labs/connectors/test/{{ .Package }}"
 	"github.com/amp-labs/connectors/test/utils"
+)
+
+var (
+	objectName = naming.NewPluralString("{{ .ObjectName }}") // nolint: gochecknoglobals
 )
 
 func main() {
@@ -31,7 +36,7 @@ func main() {
 	defer utils.Close(conn)
 
 	res, err := conn.Read(ctx, common.ReadParams{
-		ObjectName: "{{ .ObjectName }}s", // TODO check endpoint path
+		ObjectName: objectName.String(), // TODO check endpoint path
 		Fields: []string{
 			"fullname", "emailaddress1", "fax", // TODO provide fields
 		},

@@ -33,12 +33,22 @@ func TestListObjectMetadata(t *testing.T) { // nolint:funlen,gocognit,cyclop
 			expectedErrs: []error{common.ErrMissingObjects},
 		},
 		{
+			// TODO use this test if ListObjectMetadata reads from file
 			name:  "Unknown object requested",
 			input: []string{"butterflies"},
 			server: httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusTeapot)
 			})),
 			expectedErrs: []error{scrapper.ErrObjectNotFound},
+		},
+		{
+			// TODO use this test if ListObjectMetadata make API call
+			name:  "Mime response header expected",
+			input: []string{"butterflies"},
+			server: httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusTeapot)
+			})),
+			expectedErrs: []error{interpreter.ErrMissingContentType},
 		},
 		{
 			// TODO write successful query for metadata

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/spf13/cobra"
@@ -27,15 +28,12 @@ func Execute() {
 func init() {
 	rootCmd.PersistentFlags().StringP("provider", "n", "", "Provider name")
 	rootCmd.PersistentFlags().StringP("package", "p", "", "Package name")
-	rootCmd.PersistentFlags().StringP("output", "o", "", "Toggle manual test generation")
 
 	if err := errors.Join(
 		rootCmd.MarkPersistentFlagRequired("provider"),
 		rootCmd.MarkPersistentFlagRequired("package"),
-		rootCmd.MarkPersistentFlagRequired("output"),
 		viper.BindPFlag("provider", rootCmd.PersistentFlags().Lookup("provider")),
 		viper.BindPFlag("package", rootCmd.PersistentFlags().Lookup("package")),
-		viper.BindPFlag("output", rootCmd.PersistentFlags().Lookup("output")),
 	); err != nil {
 		log.Fatal(err)
 	}
@@ -48,9 +46,11 @@ type Recipe struct {
 }
 
 func GetRecipe() *Recipe {
-	return &Recipe{
+	result := &Recipe{
 		Provider: viper.GetString("provider"),
 		Package:  viper.GetString("package"),
-		Output:   viper.GetString("output"),
 	}
+	result.Output = fmt.Sprintf("%v-output-gen", result.Package)
+
+	return result
 }

@@ -21,8 +21,10 @@ type {{ .ObjectName }}Payload struct { // TODO fill in properties
 	Shared     bool   `json:"shared,omitempty"`
 }
 
-// TODO replace object name with what it appears in endpoint path
-var objectName = "{{ .ObjectName }}s" // nolint: gochecknoglobals
+var (
+	objectName = naming.NewPluralString("{{ .ObjectName }}") // nolint: gochecknoglobals
+)
+
 
 func main() {
 	// Handle Ctrl-C gracefully.
@@ -48,7 +50,7 @@ func main() {
 		Name:       "Tom's Prospects",
 		View:       "companies",
 		ViewParams: "",
-		IsDefault:  boolPtr(true),
+		IsDefault:  mockutils.Pointers.Bool(true),
 		Shared:     false,
 	})
 
@@ -56,7 +58,7 @@ func main() {
 	update{{ .ObjectName }}(ctx, conn, view.RecordId, &{{ .ObjectName }}Payload{
 		Name:      "Jerry's Prospects",
 		View:      "companies",
-		IsDefault: boolPtr(false),
+		IsDefault: mockutils.Pointers.Bool(false),
 	})
 
 	fmt.Println("View that {{ .ObjectName }} has changed accordingly")
@@ -70,7 +72,7 @@ func main() {
 		"is_default": "false",
 		"shared":     "false",
 	} {
-		if !compare(updatedView[k], v) {
+		if !mockutils.DoesObjectCorrespondToString(updatedView[k], v) {
 			utils.Fail("error updated properties do not match", k, v, updatedView[k])
 		}
 	}
@@ -82,7 +84,7 @@ func main() {
 
 func search{{ .ObjectName }}(res *common.ReadResult, key, value string) map[string]any {
 	for _, data := range res.Data {
-		if compare(data.Fields[key], value) {
+		if mockutils.DoesObjectCorrespondToString(data.Fields[key], value) {
 			return data.Raw
 		}
 	}
@@ -94,7 +96,7 @@ func search{{ .ObjectName }}(res *common.ReadResult, key, value string) map[stri
 
 func read{{ .ObjectName }}s(ctx context.Context, conn *{{ .Package }}.Connector) *common.ReadResult {
 	res, err := conn.Read(ctx, common.ReadParams{
-		ObjectName: objectName,
+		ObjectName: objectName.String(),
 		Fields: []string{
 			"id", "view", "name",
 		},
@@ -108,7 +110,7 @@ func read{{ .ObjectName }}s(ctx context.Context, conn *{{ .Package }}.Connector)
 
 func create{{ .ObjectName }}(ctx context.Context, conn *{{ .Package }}.Connector, payload *{{ .ObjectName }}Payload) *common.WriteResult {
 	res, err := conn.Write(ctx, common.WriteParams{
-		ObjectName: objectName,
+		ObjectName: objectName.String(),
 		RecordId:   "",
 		RecordData: payload,
 	})
@@ -125,7 +127,7 @@ func create{{ .ObjectName }}(ctx context.Context, conn *{{ .Package }}.Connector
 
 func update{{ .ObjectName }}(ctx context.Context, conn *{{ .Package }}.Connector, viewID string, payload *{{ .ObjectName }}Payload) *common.WriteResult {
 	res, err := conn.Write(ctx, common.WriteParams{
-		ObjectName: objectName,
+		ObjectName: objectName.String(),
 		RecordId:   viewID,
 		RecordData: payload,
 	})
@@ -142,7 +144,7 @@ func update{{ .ObjectName }}(ctx context.Context, conn *{{ .Package }}.Connector
 
 func remove{{ .ObjectName }}(ctx context.Context, conn *{{ .Package }}.Connector, viewID string) {
 	res, err := conn.Delete(ctx, common.DeleteParams{
-		ObjectName: objectName,
+		ObjectName: objectName.String(),
 		RecordId:   viewID,
 	})
 	if err != nil {
@@ -152,16 +154,4 @@ func remove{{ .ObjectName }}(ctx context.Context, conn *{{ .Package }}.Connector
 	if !res.Success {
 		utils.Fail("failed to remove a {{ .ObjectName }}")
 	}
-}
-
-func boolPtr(b bool) *bool {
-	return &b
-}
-
-func compare(field any, value string) bool {
-	if len(value) == 0 && field == nil {
-		return true
-	}
-
-	return fmt.Sprintf("%v", field) == value
 }

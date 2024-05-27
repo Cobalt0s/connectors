@@ -15,7 +15,7 @@ func (c *Connector) Read(ctx context.Context, config common.ReadParams) (*common
 	}
 
 	// TODO add any required headers
-	rsp, err := c.get(ctx, link.String())
+	rsp, err := c.Client.Get(ctx, link.String())
 	if err != nil {
 		return nil, err
 	}
@@ -45,10 +45,4 @@ func (c *Connector) buildReadURL(config common.ReadParams) (*urlbuilder.URL, err
 	link.WithQueryParam("per_page", strconv.Itoa(DefaultPageSize)) // TODO replace with page size query param
 
 	return link, nil
-}
-
-func (c *Connector) get(ctx context.Context, url string,
-	headers ...common.Header, // nolint:unparam
-) (*common.JSONHTTPResponse, error) {
-	return c.Client.Get(ctx, url, headers...)
 }
