@@ -8,14 +8,14 @@ import (
 	"syscall"
 
 	"github.com/amp-labs/connectors/common"
-	"github.com/amp-labs/connectors/common/naming"
 	connTest "github.com/amp-labs/connectors/test/{{ .Package }}"
 	"github.com/amp-labs/connectors/test/utils"
 	"github.com/amp-labs/connectors/test/utils/mockutils"
 )
 
 var (
-	objectName = naming.NewSingularString("{{ .ObjectName }}") // nolint: gochecknoglobals
+	objectName     = "{{ .ObjectName | plural }}"   // nolint: gochecknoglobals
+	objectNameMeta = "{{ .ObjectName | singular }}" // nolint: gochecknoglobals
 )
 
 // We want to compare fields returned by read and schema properties provided by metadata methods.
@@ -37,7 +37,7 @@ func main() {
 	defer utils.Close(conn)
 
 	response, err := conn.Read(ctx, common.ReadParams{
-		ObjectName: objectName.Plural().String(), // TODO check endpoint path
+		ObjectName: objectName, // TODO check endpoint path
 	})
 	if err != nil {
 		utils.Fail("error reading from {{ .Provider }}", "error", err)
@@ -48,7 +48,7 @@ func main() {
 	}
 
 	metadata, err := conn.ListObjectMetadata(ctx, []string{
-		objectName.String(), // TODO check endpoint path
+		objectNameMeta, // TODO check endpoint path
 	})
 	if err != nil {
 		utils.Fail("error listing metadata for {{ .Provider }}", "error", err)
@@ -56,7 +56,7 @@ func main() {
 
 	fmt.Println("Compare object metadata against endpoint response:")
 
-	mismatchErr := mockutils.ValidateReadConformsMetadata(objectName.String(), response.Data[0].Raw, metadata)
+	mismatchErr := mockutils.ValidateReadConformsMetadata(objectNameMeta, response.Data[0].Raw, metadata)
 	if mismatchErr != nil {
 		utils.Fail("schema and payload response have mismatching fields", "error", mismatchErr)
 	} else {

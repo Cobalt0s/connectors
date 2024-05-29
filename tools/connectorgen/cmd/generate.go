@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/amp-labs/connectors/common/naming"
 	"log"
 	"os"
 	"path/filepath"
@@ -17,6 +18,12 @@ var customFunctions = template.FuncMap{ // nolint:gochecknoglobals
 	"snake":     strcase.ToSnake,
 	"upper":     strings.ToUpper,
 	"kebab":     strcase.ToKebab,
+	"singular": func(text string) string {
+		return naming.NewSingularString(text).String()
+	},
+	"plural": func(text string) string {
+		return naming.NewPluralString(text).String()
+	},
 }
 
 func applyTemplatesFromDirectory(directoryName string, data any, dirOutput string) {
