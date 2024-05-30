@@ -17,7 +17,7 @@ func (*Connector) interpretJSONError(res *http.Response, body []byte) error { //
 	// TODO if error response from the server is not consistent consider using `common.ErrorDescriptor` interface
 	// see usages how it is used
 
-	return payload.combineErr(statusCodeMapping(res, body))
+	return payload.CombineErr(statusCodeMapping(res, body))
 }
 
 func statusCodeMapping(res *http.Response, body []byte) error {
@@ -30,7 +30,7 @@ func statusCodeMapping(res *http.Response, body []byte) error {
 
 type ResponseError struct{}
 
-func (r ResponseError) combineErr(base error) error {
+func (r ResponseError) CombineErr(base error) error {
 	// TODO convert response error message into
 	return fmt.Errorf("%w: %v", base, r)
 }
